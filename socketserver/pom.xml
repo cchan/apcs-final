@@ -1,6 +1,6 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.cliveio.socketserver</groupId>
+  <groupId>com.cliveio.apcs</groupId>
   <artifactId>apcs-final</artifactId>
   <version>1.0</version>
   <properties>
@@ -22,11 +22,18 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.cliveio.socketserver</mainClass>
+							<mainClass>com.cliveio.apcs.socketserver</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
 			</plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>com.cliveio.apcs.socketserver</mainClass>
+        </configuration>
+      </plugin>
 		</plugins>
 	</build>
 </project>

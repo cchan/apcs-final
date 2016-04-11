@@ -11,12 +11,40 @@
   <meta name="author" content="Clive Chan">
   
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" rel="stylesheet">
-  <link href="style.css" rel="stylesheet">
+  <!--link href="style.css" rel="stylesheet"-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="jquery-1.11.3.min.js">\x3C/script>')</script>
+  <script>
+    var userName = 'user' + Math.floor((Math.random()*1000)+1);
+		var socket =  io.connect('http://localhost:1234');
+		socket.on('connect', function() {
+			output('<span class="connect-msg">Client has connected to the server!</span>');
+		});
+		socket.on('chatevent', function(data) {
+			output('<span class="username-msg">' + data.userName + ':</span> ' + data.message);
+		});
+		socket.on('disconnect', function() {
+			output('<span class="disconnect-msg">The client has disconnected!</span>');
+    });
+    function sendDisconnect() {
+      socket.disconnect();
+    }
+		function sendMessage() {
+      socket.emit('clickevent', {X: 1234, Y: 4422});
+		}
+		function output(message) {
+      var currentTime = "<span class='time'></span>";
+      var element = $("<div>" + currentTime + " " + message + "</div>");
+			$('#console').prepend(element);
+		}
+  </script>
 </head>
 <body>
-  <h1>Hello</h1>
-  <p>Test 1 2 3</p>
+  <form class="well form-inline" onsubmit="return false;">
+     <input id="msg" class="input-xlarge" type="text" placeholder="Type something..."/>
+     <button type="button" onClick="sendMessage()" class="btn" id="send">Send</button>
+     <button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
+  </form>
 </body>
 </html>
