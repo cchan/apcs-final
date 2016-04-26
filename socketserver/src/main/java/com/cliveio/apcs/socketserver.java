@@ -7,10 +7,11 @@ import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.*;
 
 public class socketserver {
+  public static final int PORT = 1234;
   public static void main(String[] args) throws Exception {
     Configuration config = new Configuration();
     config.setHostname("0.0.0.0");
-    config.setPort(1234);
+    config.setPort(PORT);
     
     final SocketIOServer server = new SocketIOServer(config);
     server.addEventListener("clickevent", ClickEvent.class, new DataListener<ClickEvent>(){
@@ -21,7 +22,7 @@ public class socketserver {
     });
     
     server.start();
-    System.out.println("Listening *:1234");
+    System.out.println("Listening *:"+PORT);
     Thread.sleep(Integer.MAX_VALUE);
     server.stop();
   }
