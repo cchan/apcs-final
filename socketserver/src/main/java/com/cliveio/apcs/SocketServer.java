@@ -6,7 +6,7 @@ import java.net.*;
 import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.*;
 
-public class socketserver {
+public class SocketServer {
   public static final int PORT = 1234;
   public static void main(String[] args) throws Exception {
     Configuration config = new Configuration();
