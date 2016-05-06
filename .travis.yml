@@ -1,0 +1,3 @@
+language: java
+install: cd socketserver && mvn install -DskipTests=true && cd ..
+script: cd socketserver && mvn test && cd ..
