@@ -6,6 +6,7 @@ import java.net.*;
 import java.nio.file.Files;
 
 import com.sun.net.httpserver.*;
+import org.apache.commons.io.*;
 
 public class HTTPServer extends Thread{
   public int PORT;
@@ -41,14 +42,15 @@ public class HTTPServer extends Thread{
       if(path.equals(""))
         path="index.html";
       
-      File f = new File("../client/"+path);
+      URL served = Thread.currentThread().getContextClassLoader().getResource("client/"+path);
       OutputStream os = t.getResponseBody();
-      if(f.exists() && !f.isDirectory()){
-        t.sendResponseHeaders(200, f.length());
-        Files.copy(f.toPath(), os);
+      
+      if(served != null){
+        t.sendResponseHeaders(200, new File(served.getFile()).length());
+        IOUtils.copy(served.openStream(), os);
         System.out.println("200");
       }else{
-        t.sendResponseHeaders(404,resp404.length());
+        t.sendResponseHeaders(404, resp404.length());
         os.write(resp404.getBytes());
         System.out.println("404");
       }
