@@ -1,3 +1,5 @@
+package com.cliveio.apcs;
+
 import java.io.*;
 import java.io.*;
 import java.net.*;
@@ -5,15 +7,30 @@ import java.nio.file.Files;
 
 import com.sun.net.httpserver.*;
 
-public class HTTPServer {
-  public static final int PORT = 8000;
+public class HTTPServer extends Thread{
+  public int PORT;
   public static final String resp404 = "404 not found";
-  public static void main(String[] args) throws Exception {
-    HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+  public HTTPServer(int PORT) throws Exception {
+    this.PORT = PORT;
+  }
+  @Override
+  public void run() {
+    HttpServer server;
+    try{
+      server = HttpServer.create(new InetSocketAddress(PORT), 0);
+    }catch(IOException e){
+      System.out.println("IOException creating server");
+      return;
+    }
     server.createContext("/", new MyHandler());
     server.setExecutor(null); // creates a default executor
     server.start();
-    System.out.println("Listening on *:"+PORT);
+    try{
+      System.out.println("Listening on *:"+PORT);
+      Thread.sleep(Integer.MAX_VALUE);
+    }catch(InterruptedException e){
+      server.stop(0);
+    }
   }
   static class MyHandler implements HttpHandler {
     @Override

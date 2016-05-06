@@ -6,13 +6,17 @@ import java.net.*;
 import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.*;
 
-public class SocketServer {
-  public static final int PORT = 1234;
-  public static void main(String[] args) throws Exception {
-    Configuration config = new Configuration();
+public class SocketServer extends Thread{
+  public int PORT;
+  public Configuration config;
+  public SocketServer(int PORT) throws Exception {
+    this.PORT = PORT;
+    config = new Configuration();
     config.setHostname("0.0.0.0");
     config.setPort(PORT);
-    
+  }
+  @Override
+  public void run(){
     final SocketIOServer server = new SocketIOServer(config);
     server.addEventListener("clickevent", ClickEvent.class, new DataListener<ClickEvent>(){
       @Override
@@ -23,7 +27,11 @@ public class SocketServer {
     
     server.start();
     System.out.println("Listening *:"+PORT);
-    Thread.sleep(Integer.MAX_VALUE);
-    server.stop();
+    try{
+      Thread.sleep(Integer.MAX_VALUE);
+    }
+    catch(InterruptedException e){
+      server.stop();
+    }
   }
 }

@@ -2,13 +2,13 @@ package com.cliveio.apcs;
 
 import junit.framework.TestCase;
 
-public class SocketServerTest extends TestCase {
-  public SocketServerTest(String name){
+public class HTTPServerTest extends TestCase {
+  public HTTPServerTest(String name){
     super(name);
   }
   public void testSomething() throws Exception {
-    int PORT = 8056;
-    SocketServer hs = new SocketServer(PORT);
+    int PORT = 8000;
+    HTTPServer hs = new HTTPServer(PORT);
     assertTrue(hs.PORT == PORT);
   }
 }
