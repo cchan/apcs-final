@@ -5,7 +5,7 @@ import java.nio.file.Files;
 
 import com.sun.net.httpserver.*;
 
-public class httpserver {
+public class HTTPServer {
   public static final int PORT = 8000;
   public static final String resp404 = "404 not found";
   public static void main(String[] args) throws Exception {
