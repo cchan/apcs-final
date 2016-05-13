@@ -14,6 +14,8 @@ public class HTTPServerTest extends TestCase {
     HTTPServer hs = new HTTPServer(PORT);
     hs.start();
     
+    Thread.sleep(1000);
+    
     InputStream is1 = (new URL("http://127.0.0.1:"+PORT+"/")).openStream();
     
     InputStream is2 = Thread.currentThread().getContextClassLoader().getResourceAsStream("client/index.html");
