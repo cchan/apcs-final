@@ -18,10 +18,11 @@ public class SocketServer extends Thread{
   @Override
   public void run(){
     final SocketIOServer server = new SocketIOServer(config);
-    server.addEventListener("clickevent", ClickEvent.class, new DataListener<ClickEvent>(){
+    server.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
       @Override
-      public void onData(SocketIOClient client, ClickEvent data, AckRequest ackrequest){
-        System.out.println("ClickEvent received");
+      public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
+        System.out.println("ChatEvent | " + data.getAuthor() + ": " + data.getMessage() + "(" + data.getTimestamp() + ")");
+        server.getBroadcastOperations().sendEvent("ChatEvent", data);
       }
     });
     

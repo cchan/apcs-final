@@ -12,39 +12,57 @@
   
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" rel="stylesheet">
   <!--link href="style.css" rel="stylesheet"-->
+  <style>
+    .connect-msg, .disconnect-msg{
+      text-style: italic;
+    }
+    .connect-msg{
+      color: green;
+    }
+    .disconnect-msg{
+      color: red;
+    }
+    .username-msg{
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <form onsubmit="return false;">
+     <input id="chat-author" type="text" placeholder="Name"/>
+     <input id="chat-message" type="text" placeholder="Message"/>
+     <button type="button" onClick="sendMessage()">Send</button>
+  </form>
+  <div id="output"></div>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="jquery-1.11.3.min.js">\x3C/script>')</script>
   <script>
     var userName = 'user' + Math.floor((Math.random()*1000)+1);
 		var socket =  io.connect('http://localhost:1234');
-		socket.on('connect', function() {
-			output('<span class="connect-msg">Client has connected to the server!</span>');
+		socket.on('ConnectEvent', function(data) {
+			output('<span class="connect-msg">'+data.name+' has connected to the server!</span>');
 		});
-		socket.on('chatevent', function(data) {
-			output('<span class="username-msg">' + data.userName + ':</span> ' + data.message);
+		socket.on('DisconnectEvent', function(data) {
+			output('<span class="disconnect-msg">'+data.name+' has disconnected from the server!</span>');
 		});
-		socket.on('disconnect', function() {
-			output('<span class="disconnect-msg">The client has disconnected!</span>');
-    });
-    function sendDisconnect() {
-      socket.disconnect();
-    }
+		socket.on('ChatEvent', function(data) {
+			output('<span class="username-msg">' + data.author + ':</span> ' + data.message + " (" + data.timestamp + ")");
+		});
 		function sendMessage() {
-      socket.emit('clickevent', {X: 1234, Y: 4422});
+      socket.emit('ChatEvent', {author: $('#chat-author').val(), message: $('#chat-message').val()}, function(data){
+        $('#chat-message').val('').focus();
+      });
 		}
-		function output(message) {
-      var currentTime = "<span class='time'></span>";
-      var element = $("<div>" + currentTime + " " + message + "</div>");
-			$('#console').prepend(element);
+		function output(data) {
+      var element = $("<div> " + data + "</div>");
+			$('#output').prepend(element);
 		}
+    $('#chat-message').keypress(function(e){
+      var keycode = e.keyCode || e.which;
+      if(keycode==13 && $(this).val() != '')sendMessage();
+    });
   </script>
-</head>
-<body>
-  <form class="well form-inline" onsubmit="return false;">
-     <input id="msg" class="input-xlarge" type="text" placeholder="Type something..."/>
-     <button type="button" onClick="sendMessage()" class="btn" id="send">Send</button>
-     <button type="button" onClick="sendDisconnect()" class="btn">Disconnect</button>
-  </form>
 </body>
 </html>
