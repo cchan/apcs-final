@@ -1,1 +1,6 @@
+pkill -9 -f java
+curl 127.0.0.1:10000/unregister/apcs.clive.io && echo
+
+curl 127.0.0.1:10000/register/apcs.clive.io/10002 && echo && \
+{ command -v mvn >/dev/null 2>&1 || { alias mvn=/usr/local/apache-maven/bin/mvn; } } && \
 mvn clean install exec:java

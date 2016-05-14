@@ -1,2 +1,0 @@
-pkill -9 -f java
-/usr/local/apache-maven/bin/mvn clean install exec:java
