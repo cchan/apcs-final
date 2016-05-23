@@ -9,6 +9,5 @@ public class ClickEvent{
   public int getY(){return y;}
   public void setY(int y){this.y=y;}
   
-  public ClickEvent(){}
   public ClickEvent(int x, int y){this.x = x; this.y = y;}
 }

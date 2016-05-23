@@ -21,8 +21,21 @@ public class SocketServer extends Thread{
     server.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
       @Override
       public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
-        System.out.println("ChatEvent | " + data.getAuthor() + ": " + data.getMessage() + "(" + data.getTimestamp() + ")");
+        System.out.println("ChatEvent | " + data.getAuthor() + ": " + data.getMessage() + " (" + data.getTimestamp() + ")");
         server.getBroadcastOperations().sendEvent("ChatEvent", data);
+      }
+    });
+    server.addEventListener("ConnectEvent", ConnectEvent.class, new DataListener<ConnectEvent>(){
+      @Override
+      public void onData(SocketIOClient client, ConnectEvent data, AckRequest ackrequest){
+        System.out.println("ConnectEvent | " + data.getName());
+        server.getBroadcastOperations().sendEvent("ConnectEvent", data);
+      }
+    });
+    server.addEventListener("*", Event.class, new DataListener<Event>(){
+      @Override
+      public void onData(SocketIOClient client, Event data, AckRequest ackrequest){
+        System.out.println("Event");
       }
     });
     

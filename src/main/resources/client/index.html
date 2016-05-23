@@ -13,6 +13,16 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" rel="stylesheet">
   <!--link href="style.css" rel="stylesheet"-->
   <style>
+    section{
+      opacity: 0;
+      background-color: black;
+      position: fixed; left:0; top:0; right:0; bottom:0;
+      z-index: -1000;
+    }
+    #name-slide{
+      opacity: 1;
+      z-index: 0;
+    }
     .connect-msg, .disconnect-msg{
       text-style: italic;
     }
@@ -28,18 +38,30 @@
   </style>
 </head>
 <body>
-  <form onsubmit="return false;">
-     <input id="chat-author" type="text" placeholder="Name"/>
-     <input id="chat-message" type="text" placeholder="Message"/>
-     <button type="button" onClick="sendMessage()">Send</button>
-  </form>
   <div id="output"></div>
+  
+  <section id="name-slide">
+    <form onsubmit="sendConnect(); return false;">
+       <input id="username" type="text" placeholder="Name">
+       <input type="submit" value="Send">
+    </form>
+  </section>
+  
+  <section id="room-slide">
+    <form onsubmit="sendRoomSelect(); return false;">
+       <input id="roomname" type="text" placeholder="Name">
+       <input type="submit" value="Send">
+    </form>
+  </section>
+  
+  <section id="game-slide">
+    <canvas id="game-canvas"></canvas>
+  </section>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="jquery-1.11.3.min.js">\x3C/script>')</script>
   <script>
-    var userName = 'user' + Math.floor((Math.random()*1000)+1);
 		var socket =  io.connect(window.location.hostname+':1234');
 		socket.on('ConnectEvent', function(data) {
 			output('<span class="connect-msg">'+data.name+' has connected to the server!</span>');
@@ -50,11 +72,37 @@
 		socket.on('ChatEvent', function(data) {
 			output('<span class="username-msg">' + data.author + ':</span> ' + data.message + " (" + data.timestamp + ")");
 		});
-		function sendMessage() {
+    
+    function slideChange(id){
+      
+    }
+    
+    function sendConnect(){
+      console.log("hi");
+      socket.emit('ConnectEvent', {name: $('input#username').val()}, function(data){
+        console.log("IN");
+        console.log(data.roomList);
+      });
+    }
+		function sendChat(){
       socket.emit('ChatEvent', {author: $('#chat-author').val(), message: $('#chat-message').val()}, function(data){
         $('#chat-message').val('').focus();
       });
 		}
+    
+    var gameActive = false;
+    var ticksSinceLast = 0;
+    
+    $(document).keydown(function(e){
+      var dir = '';
+      if(gameActive){
+        switch(String.fromCharCode(e.which)){
+          case 'z': socket.emit('TurnEvent', {direction: 'LEFT', ticksSinceLast: ticksSinceLast}); return;
+          case 'x': socket.emit('TurnEvent', {direction: 'RIGHT', ticksSinceLast: ticksSinceLast}); return;
+          default: return;
+        }
+      }
+    });
 		function output(data) {
       var element = $("<div> " + data + "</div>");
 			$('#output').prepend(element);
