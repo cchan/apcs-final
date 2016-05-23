@@ -30,14 +30,13 @@ public class SocketServer extends Thread{
       @Override
       public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
         log("yellow", data.getAuthor() + ": " + data.getMessage());
-        server.getBroadcastOperations().sendEvent("LogEvent", data);
       }
     });
     server.addEventListener("ConnectEvent", ConnectEvent.class, new DataListener<ConnectEvent>(){
       @Override
       public void onData(SocketIOClient client, ConnectEvent data, AckRequest ackrequest){
         log("green", data.getName() + " has connected");
-        server.getBroadcastOperations().sendEvent("LogEvent", data);
+        ackrequest.sendAckData(server.getAllNamespaces());
       }
     });
     
