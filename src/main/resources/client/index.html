@@ -13,82 +13,95 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" rel="stylesheet">
   <!--link href="style.css" rel="stylesheet"-->
   <style>
-    section{
-      opacity: 0;
+    main{
       background-color: black;
+      color: white;
       position: fixed; left:0; top:0; right:0; bottom:0;
-      z-index: -1000;
     }
-    #name-slide{
+    main header{
+      text-align: center;
+    }
+    main section{
+      z-index: -1000;
+      opacity: 0;
+      transition: all 1s;
+    }
+    input[type=submit], button{
+      background-color: purple;
+      border-color: purple;
+      font-weight: bold;
+      color: white;
+    }
+    input[type=text]{color:black;}
+    #name-section{
       opacity: 1;
       z-index: 0;
     }
-    .connect-msg, .disconnect-msg{
-      text-style: italic;
+    #name-section form{
+      margin-left: auto; margin-right: auto;
+      margin-top: 40vh;
+      text-align: center;
     }
-    .connect-msg{
-      color: green;
-    }
-    .disconnect-msg{
-      color: red;
-    }
-    .username-msg{
+    
+    #log{
+      background-color: transparent;
       font-weight: bold;
+      position:fixed;top:1em;left:1em;
+      z-index:10000;
     }
   </style>
 </head>
 <body>
-  <div id="output"></div>
+  <div id="log"></div>
   
-  <section id="name-slide">
-    <form onsubmit="sendConnect(); return false;">
-       <input id="username" type="text" placeholder="Name">
-       <input type="submit" value="Send">
-    </form>
-  </section>
-  
-  <section id="room-slide">
-    <form onsubmit="sendRoomSelect(); return false;">
-       <input id="roomname" type="text" placeholder="Name">
-       <input type="submit" value="Send">
-    </form>
-  </section>
-  
-  <section id="game-slide">
-    <canvas id="game-canvas"></canvas>
-  </section>
+  <main>
+    <header>
+      <h1>MultiSnake</h1>
+    </header>
+    <section id="name-section">
+      <form id="name-form" onsubmit="sendConnect(); return false;">
+        <input id="username" type="text" placeholder="Name">
+        <input type="submit" value="Connect">
+      </form>
+    </section>
+    <section id="room-section">
+      <form id="room-form" onsubmit="sendRoomSelect(); return false;">
+        <input id="roomname" type="text" placeholder="Name">
+        <input type="submit" value="Join Game">
+      </form>
+    </section>
+    <section id="game-section">
+      <canvas id="game-canvas"></canvas>
+    </section>
+  </main>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
   <script>window.jQuery || document.write('<script src="jquery-1.11.3.min.js">\x3C/script>')</script>
   <script>
-		var socket =  io.connect(window.location.hostname+':1234');
-		socket.on('ConnectEvent', function(data) {
-			output('<span class="connect-msg">'+data.name+' has connected to the server!</span>');
-		});
-		socket.on('DisconnectEvent', function(data) {
-			output('<span class="disconnect-msg">'+data.name+' has disconnected from the server!</span>');
-		});
-		socket.on('ChatEvent', function(data) {
-			output('<span class="username-msg">' + data.author + ':</span> ' + data.message + " (" + data.timestamp + ")");
-		});
+    var socket =  io.connect(window.location.hostname+':1234');
+    socket.on('LogEvent', function(data) {
+      if(data.color !== undefined && data.text !== undefined)
+        log(data.color, data.text);
+    });
     
     function slideChange(id){
       
     }
     
     function sendConnect(){
-      console.log("hi");
-      socket.emit('ConnectEvent', {name: $('input#username').val()}, function(data){
-        console.log("IN");
-        console.log(data.roomList);
-      });
+      if($('input#username').val().length < 3)
+        log('red', 'You must enter a name of at least three characters')
+      else
+        socket.emit('ConnectEvent', {name: $('input#username').val()}, function(data){
+          console.log(data.roomList);
+        });
     }
-		function sendChat(){
+    function sendChat(){
       socket.emit('ChatEvent', {author: $('#chat-author').val(), message: $('#chat-message').val()}, function(data){
         $('#chat-message').val('').focus();
       });
-		}
+    }
     
     var gameActive = false;
     var ticksSinceLast = 0;
@@ -103,10 +116,16 @@
         }
       }
     });
-		function output(data) {
-      var element = $("<div> " + data + "</div>");
-			$('#output').prepend(element);
-		}
+    function log(color, data) {
+      var element = $("<div style='color:" + color + "' timestamp='" + (new Date().getTime()) + "'> " + data + "</div>");
+      $('#log').append(element);
+    }
+    setInterval(function(){
+      $('#log div').each(function(i, e){
+        if((new Date().getTime()) - $(this).attr('timestamp') > 5000)
+          $(this).remove();
+      })
+    }, 500);
     $('#chat-message').keypress(function(e){
       var keycode = e.keyCode || e.which;
       if(keycode==13 && $(this).val() != '')sendMessage();

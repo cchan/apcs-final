@@ -9,33 +9,35 @@ import com.corundumstudio.socketio.*;
 public class SocketServer extends Thread{
   public int PORT;
   public Configuration config;
+  public SocketIOServer server;
   public SocketServer(int PORT) throws Exception {
     this.PORT = PORT;
     config = new Configuration();
     config.setHostname("0.0.0.0");
     config.setPort(PORT);
   }
+  public void log(String color, String text){
+    LogEvent le = new LogEvent();
+    le.setColor(color);
+    le.setText(text);
+    server.getBroadcastOperations().sendEvent("LogEvent", le);
+    System.out.println(text);
+  }
   @Override
   public void run(){
-    final SocketIOServer server = new SocketIOServer(config);
+    server = new SocketIOServer(config);
     server.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
       @Override
       public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
-        System.out.println("ChatEvent | " + data.getAuthor() + ": " + data.getMessage() + " (" + data.getTimestamp() + ")");
-        server.getBroadcastOperations().sendEvent("ChatEvent", data);
+        log("yellow", data.getAuthor() + ": " + data.getMessage());
+        server.getBroadcastOperations().sendEvent("LogEvent", data);
       }
     });
     server.addEventListener("ConnectEvent", ConnectEvent.class, new DataListener<ConnectEvent>(){
       @Override
       public void onData(SocketIOClient client, ConnectEvent data, AckRequest ackrequest){
-        System.out.println("ConnectEvent | " + data.getName());
-        server.getBroadcastOperations().sendEvent("ConnectEvent", data);
-      }
-    });
-    server.addEventListener("*", Event.class, new DataListener<Event>(){
-      @Override
-      public void onData(SocketIOClient client, Event data, AckRequest ackrequest){
-        System.out.println("Event");
+        log("green", data.getName() + " has connected");
+        server.getBroadcastOperations().sendEvent("LogEvent", data);
       }
     });
     
