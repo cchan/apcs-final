@@ -8,6 +8,8 @@ Clive Chan, 2016
 
 An online multiplayer game.
 
+Tested in Windows and Amazon Linux.
+
 New technologies learned
 ------------------------
 * Maven

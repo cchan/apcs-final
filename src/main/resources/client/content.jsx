@@ -67,6 +67,7 @@ var RoomSection = React.createClass({
   render: function(){
     return (
       <section>
+        <div><button onClick={this.props.processReturnToName}>Back to Name Entry</button></div>
         <RoomList roomList={this.props.roomList} processRoomSelect={this.props.processRoomSelect} />
         <form onSubmit={this.onSubmit}>
           <input onChange={this.onChange} value={this.state.newRoom} />
@@ -78,9 +79,13 @@ var RoomSection = React.createClass({
 });
 
 var GameSection = React.createClass({
+  propTypes: {
+    processReturnToRoomSelect: React.PropTypes.func.isRequired,
+  },
   render: function(){
     return (
       <section>
+        <div><button onClick={this.props.processReturnToRoomSelect}>Back to Game Select</button></div>
         <canvas></canvas>
       </section>
     );
@@ -100,7 +105,10 @@ var Main = React.createClass({
     e.preventDefault();
   },
   processReturnToName: function(){
-    this.setState({tabIndex: 0});
+    this.setState({tabIndex: 0, room: ''});
+  },
+  processReturnToRoomSelect: function(){
+    this.setState({tabIndex: 1, room: ''});
   },
   
   name: function(n){
@@ -119,7 +127,8 @@ var Main = React.createClass({
           processRoomSelect={this.processRoomSelect.bind(this)} 
           processReturnToName={this.processReturnToName.bind(this)} />, 
       <GameSection 
-          room={this.state.room} />
+          room={this.state.room} 
+          processReturnToRoomSelect={this.processReturnToRoomSelect.bind(this)} />
     ];
     return (
       <main>
