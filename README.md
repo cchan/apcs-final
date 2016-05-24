@@ -15,6 +15,7 @@ New technologies learned
 * Maven
 * Travis CI
 * Coveralls
+* SocketIO
 * React
 
 Good sources:

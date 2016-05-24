@@ -58,6 +58,13 @@ public class SocketServer extends Thread{
         ackrequest.sendAckData(getAllNamespaces());
       }
     });
+    server.addEventListener("RoomRefresh", Object.class, new DataListener<Object>(){
+      @Override
+      public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
+        log("orange","received room list refresh request");
+        ackrequest.sendAckData(getAllNamespaces());
+      }
+    });
     
     server.start();
     System.out.println("Listening *:"+PORT);

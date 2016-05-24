@@ -24,3 +24,10 @@ main section ul{
   position:fixed;top:1em;left:1em;
   z-index:10000;
 }
+
+canvas{
+  width: 60vmin;
+  height: 60vmin;
+  border: solid 2px #fff;
+}
+

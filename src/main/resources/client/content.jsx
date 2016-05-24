@@ -1,3 +1,13 @@
+var socket =  io.connect(window.location.hostname+':1234');
+socket.on('LogEvent', function(data) {
+  log(data.color, data.text);
+});
+function log(color, data) {
+  var element = $("<div style='color:" + color + "'> " + data + "</div>");
+  $('#log').append(element);
+  setTimeout(function(){element.remove();}, 5000);
+}
+
 var NameSection = React.createClass({
   propTypes: {
     name: React.PropTypes.func.isRequired,
@@ -36,7 +46,8 @@ var RoomList = React.createClass({
       if(roomName != "")
         return <li><a href={'#'+roomName} onClick={self.props.processRoomSelect}>{roomName}</a></li>;
     };
-    var list = this.props.roomList.map(createRoom);
+    var list = this.props.roomList.map(createRoom).filter(function(x){return typeof x !== 'undefined';});
+    
     if(list.length == 0)
       return <ul><li><i>No games to display</i></li></ul>;
     else
@@ -64,10 +75,14 @@ var RoomSection = React.createClass({
       socket.emit('RoomCreateEvent', {name: this.state.newRoom}, this.props.processRoomList);
     e.preventDefault();
   },
+  refreshList: function(e){
+    socket.emit('RoomRefresh', {}, this.props.processRoomList);//<div><button onClick={this.props.refreshList}>Refresh List</button></div>
+  },
   render: function(){
     return (
       <section>
         <div><button onClick={this.props.processReturnToName}>Back to Name Entry</button></div>
+        <br />
         <RoomList roomList={this.props.roomList} processRoomSelect={this.props.processRoomSelect} />
         <form onSubmit={this.onSubmit}>
           <input onChange={this.onChange} value={this.state.newRoom} />
@@ -79,14 +94,42 @@ var RoomSection = React.createClass({
 });
 
 var GameSection = React.createClass({
+  getInitialState: function(){
+    return {players:[], width: 100, height: 100, tick: 0};
+    /*
+    players = [
+      {
+        startPos = {x: int, y: int},
+        startDir = int (0-3),
+        turns = [ {tick: int, dir: int (+/-1)} ]
+      }
+    ]
+    
+    DIRECTION NUMBERS:
+       0
+     3   1
+       2
+    */
+  },
   propTypes: {
+    room: React.PropTypes.string.isRequired,
     processReturnToRoomSelect: React.PropTypes.func.isRequired,
+  },
+  recieveState: function(data){
+    this.setState(data);
+  },
+  processKeypress: function(e){
+    switch(String.fromCharCode(e.which)){
+      case 'z': socket.emit('TurnEvent', {direction: -1, tick: tick}); break;
+      case 'x': socket.emit('TurnEvent', {direction: +1, tick: tick}); break;
+    }
   },
   render: function(){
     return (
       <section>
+        <h2>{this.props.room}</h2>
         <div><button onClick={this.props.processReturnToRoomSelect}>Back to Game Select</button></div>
-        <canvas></canvas>
+        <canvas onKeypress={this.processKeypress} id="gameCanvas"></canvas>
       </section>
     );
   }
@@ -94,26 +137,38 @@ var GameSection = React.createClass({
 
 var Main = React.createClass({
   getInitialState: function(){
-    return {tabIndex: 0, name: '', roomList: [], room: ''};
+    return {tabIndex: 0, name: '', roomList: [], room: '', gameSocket: undefined};
   },
-  
   processRoomList: function(data){
     this.setState({roomList: data, tabIndex: 1});
   },
   processRoomSelect: function(e){
-    this.setState({room: e.target.innerText, tabIndex: 2});
+    this.setState({room: e.target.innerText, tabIndex: 2, gameSocket: this.state.gameSocket});
+    
+    var self = this;
+    setTimeout(function(){ //timeout to wait for React to react and put the Canvas back
+      var g = new Game(document.getElementsByTagName("canvas")[0], self.state.room);
+      g.start(); //may be in the middle of a game
+    }, 50)
+    
     e.preventDefault();
   },
   processReturnToName: function(){
     this.setState({tabIndex: 0, room: ''});
   },
   processReturnToRoomSelect: function(){
-    this.setState({tabIndex: 1, room: ''});
+    this.state.gameSocket.disconnect();
+    this.setState({tabIndex: 1, room: '', gameSocket: undefined});
   },
   
   name: function(n){
     if(n === undefined)return this.state.name;
     else this.setState({name: n});
+  },
+  getUsernameMessage: function(){
+    if(this.state.tabIndex > 0)
+      return <span>You are <b>{this.state.name}</b></span>;
+    else return '';
   },
   
   render: function(){
@@ -134,6 +189,7 @@ var Main = React.createClass({
       <main>
         <header>
           <h1>MultiSnake</h1>
+          <div>{this.getUsernameMessage()}</div>
         </header>
         {tabs[this.state.tabIndex]}
       </main>
