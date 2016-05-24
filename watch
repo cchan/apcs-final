@@ -1,4 +1,2 @@
 # Watches repo for changes to src/main/resources and executes resources:resources if so
 mvn fizzed-watcher:run
-
-# Protip: Use this with Google Chrome persistent DevTools Workspaces because no more going back to the editor

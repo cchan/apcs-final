@@ -11,46 +11,7 @@
   <meta name="author" content="Clive Chan">
   
   <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css" rel="stylesheet">
-  <!--link href="style.css" rel="stylesheet"-->
-  <style>
-    main{
-      background-color: #003;
-      color: white;
-      position: fixed; left:0; top:0; right:0; bottom:0;
-    }
-    main header{
-      text-align: center;
-    }
-    main section{
-      z-index: -1000;
-      opacity: 0;
-      transition: all 1s;
-    }
-    main section:first-child{
-      opacity: 1;
-      z-index: 1;
-    }
-    main header{transition: all 1s;}
-    input[type=submit], button{
-      background-color: purple;
-      border-color: purple;
-      font-weight: bold;
-      color: white;
-    }
-    input[type=text]{color:black;}
-    #name-section form{
-      margin-left: auto; margin-right: auto;
-      margin-top: 40vh;
-      text-align: center;
-    }
-    
-    #log{
-      background-color: transparent;
-      font-weight: bold;
-      position:fixed;top:1em;left:1em;
-      z-index:10000;
-    }
-  </style>
+  <link href="style.css" rel="stylesheet">
 </head>
 <body>
   <div id="log"></div>
@@ -60,62 +21,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-cookie/0.4.6/react-cookie.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script>//<![CDATA[
-    var socket =  io.connect(window.location.hostname+':1234');
-    socket.on('LogEvent', function(data) {
-      log(data.color, data.text);
-    });
-    socket.on('RoomListUpdate', function(data){
-      
-    });
-    
-    function sendConnect(){
-      if($('input#username').val().length < 3)
-        log('red', 'You must enter a name of at least three characters')
-      else
-        socket.emit('ConnectEvent', {name: $('input#username').val()}, function(data){
-          var noRooms = true;
-          for(var i = 0; i < data.length; i++){
-            if(data[i].length > 0){
-              noRooms = false;
-              var element = $("<li>" + data[i] + "</li>");
-              element.click(function(e){
-                //assign the room
-              });
-              $('#room-list').append(element);
-            }
-          }
-          if(noRooms)
-            $('#room-list').append($("<li>There are no rooms to display</li>"));
-        });
-    }
-    function sendChat(){
-      socket.emit('ChatEvent', {author: $('#chat-author').val(), message: $('#chat-message').val()}, function(data){
-        $('#chat-message').val('').focus();
-      });
-    }
-    
-    var gameActive = false;
-    var ticksSinceLast = 0;
-    
-    $(document).keydown(function(e){
-      var dir = '';
-      if(gameActive){
-        switch(String.fromCharCode(e.which)){
-          case 'z': socket.emit('TurnEvent', {direction: 'LEFT', ticksSinceLast: ticksSinceLast}); ticksSinceLast = 0; return;
-          case 'x': socket.emit('TurnEvent', {direction: 'RIGHT', ticksSinceLast: ticksSinceLast}); ticksSinceLast = 0; return;
-          default: return;
-        }
-      }
-    });
-    function log(color, data) {
-      var element = $("<div style='color:" + color + "'> " + data + "</div>");
-      $('#log').append(element);
-      setTimeout(function(){element.remove();}, 5000);
-    }
-  //]]></script>
+  <script src="sockets.js"></script>
   <script type="text/babel" src="content.jsx"></script>
 </body>
 </html>

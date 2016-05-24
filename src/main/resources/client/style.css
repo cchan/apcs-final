@@ -1,0 +1,26 @@
+main{
+  background-color: #003;
+  color: white;
+  position: fixed; left:0; top:0; right:0; bottom:0;
+  text-align: center;
+}
+input{color:black;}
+input[type=submit], button{
+  background-color: purple;
+  border-color: purple;
+  font-weight: bold;
+  color: white;
+}
+
+main section ul{
+  list-style: none;
+  margin: 0 0 1em 0;
+  padding: 0;
+}
+
+#log{
+  background-color: transparent;
+  font-weight: bold;
+  position:fixed;top:1em;left:1em;
+  z-index:10000;
+}

@@ -18,3 +18,5 @@ New technologies learned
 Good sources:
 http://krisjordan.com/essays/setting-up-push-to-deploy-with-git
 http://blog.tfnico.com/2015/05/a-better-way-to-git-push-to-deploy.html
+
+Protip: Use Google Chrome persistent DevTools Workspaces because you can edit directly in the browser, and Chrome will watch your files for changes and instantly update webpage display.

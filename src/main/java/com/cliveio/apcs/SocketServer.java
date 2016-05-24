@@ -24,6 +24,12 @@ public class SocketServer extends Thread{
     server.getBroadcastOperations().sendEvent("LogEvent", le);
     System.out.println(text);
   }
+  public List<String> getAllNamespaces(){
+    List<String> namespaces = new ArrayList<String>();
+    for(SocketIONamespace ns : server.getAllNamespaces())
+      namespaces.add(ns.getName());
+    return namespaces;
+  }
   @Override
   public void run(){
     server = new SocketIOServer(config);
@@ -37,12 +43,19 @@ public class SocketServer extends Thread{
       @Override
       public void onData(SocketIOClient client, ConnectEvent data, AckRequest ackrequest){
         log("green", data.getName() + " has connected");
-        List<String> namespaces = new ArrayList<String>();
-        for(SocketIONamespace ns : server.getAllNamespaces()){
-          namespaces.add(ns.getName());
-          System.out.println(ns.getName());
+        ackrequest.sendAckData(getAllNamespaces());
+      }
+    });
+    server.addEventListener("RoomCreateEvent", RoomCreateEvent.class, new DataListener<RoomCreateEvent>(){
+      @Override
+      public void onData(SocketIOClient client, RoomCreateEvent data, AckRequest ackrequest){
+        if(server.getNamespace(data.getName()) == null){
+          server.addNamespace(data.getName());
+          log("cyan", "Game '" + data.getName() + "' has been created");
+        }else{
+          log("red", "Game '" + data.getName() + "' already exists");
         }
-        ackrequest.sendAckData(namespaces);
+        ackrequest.sendAckData(getAllNamespaces());
       }
     });
     

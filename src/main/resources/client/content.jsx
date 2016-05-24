@@ -1,18 +1,23 @@
 var NameSection = React.createClass({
-  getInitialState: function(){
-    return {name: ''};
+  propTypes: {
+    name: React.PropTypes.func,
+    processRoomList: React.PropTypes.func,
   },
   onChange: function(e){
-    this.setState({name: e.target.value});
+    this.props.name(e.target.value);
   },
   onSubmit: function(e){
+    if(this.props.name().length < 3)
+      log('red', 'You must enter a name of at least three characters');
+    else
+      socket.emit('ConnectEvent', {name: this.props.name()}, this.props.processRoomList);
     e.preventDefault();
   },
   render: function(){
     return (
       <section>
         <form onSubmit={this.onSubmit}>
-          <input onChange={this.onChange} value={this.state.name} placeholder="Name" />
+          <input onChange={this.onChange} value={this.props.name()} placeholder="Name" />
           <button>Connect</button>
         </form>
       </section>
@@ -22,32 +27,40 @@ var NameSection = React.createClass({
 
 var RoomList = React.createClass({
   render: function(){
+    var self = this;
     var createRoom = function(roomName){
-      return <li>{roomName}</li>;
+      if(roomName != "")
+        return <li><a href={'#'+roomName} onclick={self.props.processRoomSelect}>{roomName}</a></li>;
     };
-    console.log(this.props);
-    return <ul>{this.props.rooms.map(createRoom)}</ul>;
+    var list = this.props.rooms.map(createRoom);
+    if(list.length == 0)
+      return <ul><li><i>No games to display</i></li></ul>;
+    else
+      return <ul>{list}</ul>;
   }
 });
 
 var RoomSection = React.createClass({
   getInitialState: function(){
-    return {rooms: [], newRoom: ''};
+    return {newRoom: ''};
   },
   onChange: function(e){
     this.setState({newRoom: e.target.value});
   },
   onSubmit: function(e){
+    if(this.state.newRoom.length < 3)
+      log('red', 'A game name must be at least three characters');
+    else
+      socket.emit('RoomCreateEvent', {name: this.state.newRoom}, this.props.processRoomList);
     e.preventDefault();
-    this.setState({rooms: this.state.rooms.concat([this.state.newRoom]), newRoom: ''});
   },
   render: function(){
     return (
       <section>
-        <RoomList rooms={this.state.rooms} />
+        <RoomList rooms={this.props.roomList} processRoomSelect={this.props.processRoomSelect} />
         <form onSubmit={this.onSubmit}>
           <input onChange={this.onChange} value={this.state.newRoom} />
-          <button>Create Room</button>
+          <button>Create Game</button>
         </form>
       </section>
     );
@@ -65,15 +78,37 @@ var GameSection = React.createClass({
 });
 
 var Main = React.createClass({
+  getInitialState: function(){
+    return {tabIndex: 0, name: '', roomList: [], room: ''};
+  },
+  
+  processRoomList: function(data){
+    this.setState({roomList: data, tabIndex: 1});
+  },
+  processReturnToName: function(){
+    this.setState({tabIndex: 0});
+  },
+  processRoomSelect: function(e){
+    this.setState({room: e.target.innerText, tabIndex: 2});
+  },
+  
+  name: function(n){
+    if(n === undefined)return this.state.name;
+    else this.setState({name: n});
+  },
+  
   render: function(){
+    var tabs = [
+      <NameSection name={this.name.bind(this)} processRoomList={this.processRoomList.bind(this)} />, 
+      <RoomSection roomList={this.state.roomList} processRoomList={this.processRoomList.bind(this)} processRoomSelect={this.processRoomSelect.bind(this)} processReturnToName={this.processReturnToName.bind(this)} />, 
+      <GameSection room={this.state.room} />
+    ];
     return (
       <main>
         <header>
           <h1>MultiSnake</h1>
         </header>
-        <NameSection />
-        <RoomSection />
-        <GameSection />
+        {tabs[this.state.tabIndex]}
       </main>
     );
   }
