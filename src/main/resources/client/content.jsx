@@ -1,7 +1,7 @@
 var NameSection = React.createClass({
   propTypes: {
-    name: React.PropTypes.func,
-    processRoomList: React.PropTypes.func,
+    name: React.PropTypes.func.isRequired,
+    processRoomList: React.PropTypes.func.isRequired,
   },
   onChange: function(e){
     this.props.name(e.target.value);
@@ -26,13 +26,17 @@ var NameSection = React.createClass({
 });
 
 var RoomList = React.createClass({
+  propTypes: {
+    roomList: React.PropTypes.array.isRequired,
+    processRoomSelect: React.PropTypes.func.isRequired,
+  },
   render: function(){
     var self = this;
     var createRoom = function(roomName){
       if(roomName != "")
-        return <li><a href={'#'+roomName} onclick={self.props.processRoomSelect}>{roomName}</a></li>;
+        return <li><a href={'#'+roomName} onClick={self.props.processRoomSelect}>{roomName}</a></li>;
     };
-    var list = this.props.rooms.map(createRoom);
+    var list = this.props.roomList.map(createRoom);
     if(list.length == 0)
       return <ul><li><i>No games to display</i></li></ul>;
     else
@@ -41,6 +45,12 @@ var RoomList = React.createClass({
 });
 
 var RoomSection = React.createClass({
+  propTypes: {
+    roomList: React.PropTypes.array.isRequired,
+    processRoomList: React.PropTypes.func.isRequired,
+    processRoomSelect: React.PropTypes.func.isRequired,
+    processReturnToName: React.PropTypes.func.isRequired,
+  },
   getInitialState: function(){
     return {newRoom: ''};
   },
@@ -57,7 +67,7 @@ var RoomSection = React.createClass({
   render: function(){
     return (
       <section>
-        <RoomList rooms={this.props.roomList} processRoomSelect={this.props.processRoomSelect} />
+        <RoomList roomList={this.props.roomList} processRoomSelect={this.props.processRoomSelect} />
         <form onSubmit={this.onSubmit}>
           <input onChange={this.onChange} value={this.state.newRoom} />
           <button>Create Game</button>
@@ -85,11 +95,12 @@ var Main = React.createClass({
   processRoomList: function(data){
     this.setState({roomList: data, tabIndex: 1});
   },
-  processReturnToName: function(){
-    this.setState({tabIndex: 0});
-  },
   processRoomSelect: function(e){
     this.setState({room: e.target.innerText, tabIndex: 2});
+    e.preventDefault();
+  },
+  processReturnToName: function(){
+    this.setState({tabIndex: 0});
   },
   
   name: function(n){
@@ -99,9 +110,16 @@ var Main = React.createClass({
   
   render: function(){
     var tabs = [
-      <NameSection name={this.name.bind(this)} processRoomList={this.processRoomList.bind(this)} />, 
-      <RoomSection roomList={this.state.roomList} processRoomList={this.processRoomList.bind(this)} processRoomSelect={this.processRoomSelect.bind(this)} processReturnToName={this.processReturnToName.bind(this)} />, 
-      <GameSection room={this.state.room} />
+      <NameSection 
+          name={this.name.bind(this)} 
+          processRoomList={this.processRoomList.bind(this)} />, 
+      <RoomSection 
+          roomList={this.state.roomList} 
+          processRoomList={this.processRoomList.bind(this)} 
+          processRoomSelect={this.processRoomSelect.bind(this)} 
+          processReturnToName={this.processReturnToName.bind(this)} />, 
+      <GameSection 
+          room={this.state.room} />
     ];
     return (
       <main>
