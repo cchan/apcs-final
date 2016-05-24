@@ -14,7 +14,7 @@
   <!--link href="style.css" rel="stylesheet"-->
   <style>
     main{
-      background-color: black;
+      background-color: #003;
       color: white;
       position: fixed; left:0; top:0; right:0; bottom:0;
     }
@@ -26,6 +26,10 @@
       opacity: 0;
       transition: all 1s;
     }
+    main section:first-child{
+      opacity: 1;
+      z-index: 1;
+    }
     main header{transition: all 1s;}
     input[type=submit], button{
       background-color: purple;
@@ -34,10 +38,6 @@
       color: white;
     }
     input[type=text]{color:black;}
-    #name-section{
-      opacity: 1;
-      z-index: 0;
-    }
     #name-section form{
       margin-left: auto; margin-right: auto;
       margin-top: 40vh;
@@ -55,34 +55,20 @@
 <body>
   <div id="log"></div>
   
-  <main>
-    <header>
-      <h1>MultiSnake</h1>
-    </header>
-    <section id="name-section">
-      <form id="name-form" onsubmit="sendConnect(); return false;">
-        <input id="username" type="text" placeholder="Name">
-        <input type="submit" value="Connect">
-      </form>
-    </section>
-    <section id="room-section">
-      <form id="room-form" onsubmit="sendRoomSelect(); return false;">
-        <input id="roomname" type="text" placeholder="Name">
-        <input type="submit" value="Join Game">
-      </form>
-    </section>
-    <section id="game-section">
-      <canvas id="game-canvas"></canvas>
-    </section>
-  </main>
+  <div id="react-wrapper"></div>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="jquery-1.11.3.min.js">\x3C/script>')</script>
-  <script>
+  <script>//<![CDATA[
     var socket =  io.connect(window.location.hostname+':1234');
     socket.on('LogEvent', function(data) {
       log(data.color, data.text);
+    });
+    socket.on('RoomListUpdate', function(data){
+      
     });
     
     function sendConnect(){
@@ -90,7 +76,19 @@
         log('red', 'You must enter a name of at least three characters')
       else
         socket.emit('ConnectEvent', {name: $('input#username').val()}, function(data){
-          console.log(data);
+          var noRooms = true;
+          for(var i = 0; i < data.length; i++){
+            if(data[i].length > 0){
+              noRooms = false;
+              var element = $("<li>" + data[i] + "</li>");
+              element.click(function(e){
+                //assign the room
+              });
+              $('#room-list').append(element);
+            }
+          }
+          if(noRooms)
+            $('#room-list').append($("<li>There are no rooms to display</li>"));
         });
     }
     function sendChat(){
@@ -117,10 +115,7 @@
       $('#log').append(element);
       setTimeout(function(){element.remove();}, 5000);
     }
-    $('#chat-message').keypress(function(e){
-      var keycode = e.keyCode || e.which;
-      if(keycode==13 && $(this).val() != '')sendChat();
-    });
-  </script>
+  //]]></script>
+  <script type="text/babel" src="content.jsx"></script>
 </body>
 </html>

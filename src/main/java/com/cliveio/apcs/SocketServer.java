@@ -2,6 +2,7 @@ package com.cliveio.apcs;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.*;
@@ -36,7 +37,12 @@ public class SocketServer extends Thread{
       @Override
       public void onData(SocketIOClient client, ConnectEvent data, AckRequest ackrequest){
         log("green", data.getName() + " has connected");
-        ackrequest.sendAckData(server.getAllNamespaces());
+        List<String> namespaces = new ArrayList<String>();
+        for(SocketIONamespace ns : server.getAllNamespaces()){
+          namespaces.add(ns.getName());
+          System.out.println(ns.getName());
+        }
+        ackrequest.sendAckData(namespaces);
       }
     });
     
