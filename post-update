@@ -1,4 +1,4 @@
-# Git post-update script.
+# Git post-update script that restarts the server.
 # To use, put ../post-update in .git/hooks/post-update.
 
 # First CD to main directory for Maven to do its work (Git will start hooks in the .git directory)

@@ -1,3 +1,6 @@
+# compile
+# Shell script that kills any previous instance of the server, registers with the reverse proxy service running on my computer, makes sure maven exists, and compiles and runs the server.
+
 pkill -9 -f java
 curl -sS 127.0.0.1:10000/unregister/apcs.clive.io && echo
 curl -sS 127.0.0.1:10000/register/apcs.clive.io/10002 && echo
