@@ -2,5 +2,5 @@ pkill -9 -f java
 curl -sS 127.0.0.1:10000/unregister/apcs.clive.io && echo
 curl -sS 127.0.0.1:10000/register/apcs.clive.io/10002 && echo
 
-{ command -v mvn >/dev/null 2>&1 || { alias mvn=/usr/local/apache-maven/bin/mvn; } } && \
+command -v mvn >/dev/null 2>&1 || alias mvn=/usr/local/apache-maven/bin/mvn
 mvn exec:java

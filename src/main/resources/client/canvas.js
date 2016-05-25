@@ -1,8 +1,5 @@
 function Game(canvas, room){
-  var gameSocket = io.connect(window.location.hostname+':1234/'+room);
-  gameSocket.on('TurnEvent', function(data){
-    // {player, dir, tick}
-  });
+  var gameSocket;
   
   //http://stackoverflow.com/a/25716620/1181387
   var ctx = canvas.getContext("2d");
@@ -24,9 +21,29 @@ function Game(canvas, room){
   var zoom = 1.00;
   var scalePtX, scalePtY;
   
-  this.start = function(){
-    draw();
+  var tickInterval;
+  
+  this.connect = function(){
+    io.connect(window.location.hostname+':1234/'+room);
+    gameSocket.on('FullUpdate', function(data){
+      // 
+    });
+    gameSocket.on('TurnEvent', function(data){
+      // {player, dir, tick}
+    });
+    
+    tickInterval = setInterval(this.tick, 200);
   };
+  this.disconnect = function(){
+    clearInterval(tickInterval);
+    gameSocket.disconnect();
+    ctx.clearRect(0, 0, cw, ch);
+  };
+  
+  var currentTick = 0;
+  this.tick = function(){
+    
+  }
 
   this.draw = function() {
       var colors = []
@@ -55,6 +72,6 @@ function Game(canvas, room){
   };
 
   function randomColor() {
-      return ('#' + Math.floor(Math.random() * 16777215).toString(16));
+      return ('#' + Math.floor(Math.random() * 256 * 256 * 256).toString(16));
   }
 }
