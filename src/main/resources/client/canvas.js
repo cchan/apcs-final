@@ -24,7 +24,7 @@ function Game(canvas, room){
   var tickInterval;
   
   this.connect = function(){
-    io.connect(window.location.hostname+':1234/'+room);
+    gameSocket = io.connect(window.location.hostname+':1234/'+room);
     gameSocket.on('FullUpdate', function(data){
       // 
     });

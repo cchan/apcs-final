@@ -136,6 +136,7 @@ var GameSection = React.createClass({
 });
 
 var Main = React.createClass({
+  game: undefined,
   getInitialState: function(){
     return {tabIndex: 0, name: '', roomList: [], room: '', gameSocket: undefined};
   },
@@ -147,8 +148,8 @@ var Main = React.createClass({
     
     var self = this;
     setTimeout(function(){ //timeout to wait for React to react and put the Canvas back
-      var g = new Game(document.getElementsByTagName("canvas")[0], self.state.room);
-      g.start(); //may be in the middle of a game
+      self.game = new Game(document.getElementsByTagName("canvas")[0], self.state.room);
+      self.game.connect(); //may be in the middle of a game
     }, 50)
     
     e.preventDefault();
@@ -157,7 +158,7 @@ var Main = React.createClass({
     this.setState({tabIndex: 0, room: ''});
   },
   processReturnToRoomSelect: function(){
-    this.state.gameSocket.disconnect();
+    this.game.disconnect();
     this.setState({tabIndex: 1, room: '', gameSocket: undefined});
   },
   
