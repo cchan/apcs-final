@@ -1,0 +1,9 @@
+# Git post-update script.
+# To use, put ../post-update in .git/hooks/post-update.
+
+# First CD to main directory for Maven to do its work (Git will start hooks in the .git directory)
+cd ..
+# Then http://stackoverflow.com/a/35212783/1181387 to make it actually detach the process
+(trap '' HUP; ./compile &) >post-update.log <&1 2>&1 & disown
+
+echo Started server.

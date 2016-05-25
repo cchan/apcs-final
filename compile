@@ -4,9 +4,3 @@ curl -sS 127.0.0.1:10000/register/apcs.clive.io/10002 && echo
 
 command -v mvn >/dev/null 2>&1 || alias mvn=/usr/local/apache-maven/bin/mvn
 mvn clean install exec:java
-
-# Sample .git/hooks/post-update
-# First CD to main directory for Maven to do its work
-#     cd ..
-# Then http://stackoverflow.com/a/35212783/1181387 to make it actually detach the process
-#     (trap '' HUP; ./compile &) >/dev/null <&1 2>&1 & disown
