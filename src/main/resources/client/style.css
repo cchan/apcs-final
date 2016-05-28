@@ -26,8 +26,7 @@ main section ul{
 }
 
 canvas{
-  width: 60vmin;
-  height: 60vmin;
+  width: 300px;
+  height: 300px;
   border: solid 2px #fff;
 }
-

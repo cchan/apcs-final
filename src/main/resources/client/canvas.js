@@ -51,20 +51,16 @@ function Game(canvas, room, name){
 
   function draw(board) {
       ctx.clearRect(0, 0, $(canvas).width(), $(canvas).height());
-      ctx.save();
-      ctx.globalAlpha = 1.00;
 
-      var w = ($(canvas).width() - padding * cols) / cols; // dimensions of individual squares
-      var h = ($(canvas).height() - padding * rows) / rows;
-
+      var w = ($(canvas).width()) / cols - padding; // dimensions of individual squares
+      var h = ($(canvas).height()) / rows - padding;
+      
       for (var y = 0; y < rows; y++) {
           for (var x = 0; x < cols; x++) {
               ctx.fillStyle = board[y * cols + x];
               ctx.fillRect(x * (w + padding), y * (h + padding), w, h);
           }
       }
-      ctx.stroke();
-      ctx.restore();
   };
 
   //HANDLE KEYBOARD INPUT AND SEND IT TO THE SERVER
@@ -117,14 +113,10 @@ function Snake(name, rows, cols){
   this.length = 10; //no eating for now
 
   queue.push({
-    //x: Math.floor(Math.random() * (cols - 10) + 5),
-    x: 5,
-    y: 5
-    //y: Math.floor(Math.random() * (rows - 10) + 5)
+    x: Math.floor(Math.random() * (cols - 10) + 5),
+    y: Math.floor(Math.random() * (rows - 10) + 5)
   });
-  //dir = Math.floor(Math.random() * 4);
-  dir = 1;
-
+  dir = Math.floor(Math.random() * 4);
 
   this.turn = function(twist){
     if(twist == 1) dir = (dir+1)%4;
@@ -132,7 +124,7 @@ function Snake(name, rows, cols){
   }
   this.fillBoard = function(board){
     for(var i = 0; i < queue.length; i++)
-      board[queue[i].y * cols + queue[i].x] = "black"; //hashStringToColor(this.name)
+      board[queue[i].y * cols + queue[i].x] = hashStringToColor(this.name);
   }
   this.getCSSColor = function(){
     return hashStringToColor(this.name);

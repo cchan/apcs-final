@@ -94,8 +94,9 @@ var GameSection = React.createClass({
     return (
       <section>
         <h2>{this.props.room}</h2>
+        <span>Controls: z=left, x=right</span>
         <div><button onClick={this.props.processReturnToRoomSelect}>Back to Game Select</button></div>
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
       </section>
     );
   }
