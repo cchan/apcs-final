@@ -49,8 +49,8 @@ public class SocketServer extends Thread{
           te.setPlayer("kakakakakaka");
           te.setTwist(1);
           te.setTick(420);
+          ns.getBroadcastOperations().sendEvent("TurnEvent", te);
           log("yellow", "sent a TurnEvent to namespace "+ns.getName());
-          ns.getBroadcastOperations().sendEvent("TurnEvent",te);
         }
       },
       5000

@@ -15,7 +15,7 @@ function Game(canvas, room, name){
   var tickInterval;
   this.connect = function(){
     console.log("asdf");
-    gameSocket = io(window.location.hostname+':1234/'+name);
+    gameSocket = io(window.location.hostname+':1234'+room);
     registerSocketCallbacks(gameSocket);
     registerSocketEmits(gameSocket);
 
@@ -70,7 +70,6 @@ function Game(canvas, room, name){
   //HANDLE KEYBOARD INPUT AND SEND IT TO THE SERVER
   function registerSocketEmits(sock){
     var keypress = function(e){
-      console.log(String.fromCharCode(e.which));
       switch(String.fromCharCode(e.which)){
         case 'z': sock.emit('TurnEvent', {player: name, twist: -1, tick: currentTick}); break;
         case 'x': sock.emit('TurnEvent', {player: name, twist: +1, tick: currentTick}); break;
