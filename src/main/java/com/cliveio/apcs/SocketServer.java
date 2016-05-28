@@ -6,6 +6,7 @@ import java.util.*;
 
 import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.*;
+import org.apache.log4j.BasicConfigurator;
 
 public class SocketServer extends Thread{
   public int PORT;
@@ -22,7 +23,7 @@ public class SocketServer extends Thread{
     le.setColor(color);
     le.setText(text);
     server.getBroadcastOperations().sendEvent("LogEvent", le);
-    System.out.println(text);
+    System.out.println("SOCKETSERVER LOG: " + text);
   }
   public List<String> getAllNamespaces(){
     List<String> namespaces = new ArrayList<String>();
@@ -30,8 +31,35 @@ public class SocketServer extends Thread{
       namespaces.add(ns.getName());
     return namespaces;
   }
+  public void initGameRoom(final SocketIONamespace ns){
+    ns.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
+      @Override
+      public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
+        log("cyan","turnevent to namespace " + ns.getName());
+        ns.getBroadcastOperations().sendEvent("TurnEvent", data);
+      }
+    });
+    log("cyan", "Game '" + ns.getName() + "' has been created");
+
+    new java.util.Timer().schedule(
+      new java.util.TimerTask() {
+        @Override
+        public void run() {
+          TurnEvent te = new TurnEvent();
+          te.setPlayer("kakakakakaka");
+          te.setTwist(1);
+          te.setTick(420);
+          log("yellow", "sent a TurnEvent to namespace "+ns.getName());
+          ns.getBroadcastOperations().sendEvent("TurnEvent",te);
+        }
+      },
+      5000
+    );
+  }
   @Override
   public void run(){
+    BasicConfigurator.configure();
+
     server = new SocketIOServer(config);
     server.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
       @Override
@@ -50,8 +78,8 @@ public class SocketServer extends Thread{
       @Override
       public void onData(SocketIOClient client, RoomCreateEvent data, AckRequest ackrequest){
         if(server.getNamespace(data.getName()) == null){
-          server.addNamespace(data.getName());
-          log("cyan", "Game '" + data.getName() + "' has been created");
+          final SocketIONamespace ns = server.addNamespace("/"+data.getName());
+          initGameRoom(ns);
         }else{
           log("red", "Game '" + data.getName() + "' already exists");
         }
@@ -65,9 +93,16 @@ public class SocketServer extends Thread{
         ackrequest.sendAckData(getAllNamespaces());
       }
     });
-    
+    server.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
+      @Override
+      public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
+        log("cyan","turnevent from MAIN");
+        server.getBroadcastOperations().sendEvent("TurnEvent", data);
+      }
+    });
+
     server.start();
-    System.out.println("Listening *:"+PORT);
+    System.out.println("SocketServer listening *:"+PORT);
     try{
       Thread.sleep(Integer.MAX_VALUE);
     }
