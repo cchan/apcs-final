@@ -103,7 +103,7 @@ function Game(canvas, room, name){
     });
     sock.on('TurnEvent', function(data){
       for(var i = 0; i < players.length; i++)
-        if(players[i].name == data.name)
+        if(players[i].name == data.player)
           players[i].turn(data.twist); //Not sure how to deal with data.tick
       console.log("received TurnEvent")
       console.log(data);
@@ -142,8 +142,13 @@ function Snake(name, rows, cols){
     var newpos = {x: headpos.x, y: headpos.y};
     if(dir == 0) newpos.y--;
     if(dir == 1) newpos.x++;
-    if(dir == 2) newpox.y++;
+    if(dir == 2) newpos.y++;
     if(dir == 3) newpos.x--;
+    if(newpos.x >= cols) newpos.x -= cols;
+    if(newpos.y >= rows) newpos.y -= rows;
+    if(newpos.x < 0) newpos.x += cols;
+    if(newpos.y < 0) newpos.y += rows;
+
     queue.push(newpos);
     if(queue.length > this.length)
       queue.shift();
