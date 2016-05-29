@@ -5,7 +5,7 @@ function log(color, data) {
 }
 
 function Game(canvas, gameSocket, name){
-  //TODO: is this resizable?
+  //TODO: is this resizable? -- not right now due to canvas strict sizing
   var cols = 25;
   var rows = 25;
   var padding = 1;

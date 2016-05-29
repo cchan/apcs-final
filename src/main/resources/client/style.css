@@ -29,6 +29,7 @@ main section ul a{
 }
 
 canvas{
+  /*TODO: confused about whether these width and height actually matter*/
   width: 300px;
   height: 300px;
   border: solid 2px #fff;
