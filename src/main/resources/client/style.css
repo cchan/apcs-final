@@ -17,6 +17,9 @@ main section ul{
   margin: 0 0 1em 0;
   padding: 0;
 }
+main section ul a{
+  color: #ddd;
+}
 
 #log{
   background-color: transparent;

@@ -50,13 +50,23 @@ public class SocketServer extends Thread{
       }
     });
     ns.addEventListener("FullUpdateRequest", Object.class, new DataListener<Object>(){
+      //TODO: this shouldn't be necessary
       @Override
       public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
         //client.emit(gameState);
       }
     });
+    ns.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
+      @Override
+      public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
+        ns.getBroadcastOperations().sendEvent("ChatEvent", data);
+      }
+    });
+
+    java.util.Timer.setInterval(function(){send FullUpdateEvent});
 
     //EVERY TWO SECONDS, EMIT A FullUpdateEvent.
+
     log("cyan", "Game '" + ns.getName() + "' has been created");
   }
   @Override
@@ -64,13 +74,9 @@ public class SocketServer extends Thread{
     BasicConfigurator.configure();
 
     server = new SocketIOServer(config);
-    server.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
-      @Override
-      public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
-        log("yellow", data.getAuthor() + ": " + data.getMessage());
-      }
-    });
+
     server.addEventListener("ConnectEvent", ConnectEvent.class, new DataListener<ConnectEvent>(){
+      //TODO: disallow duplicate names?
       @Override
       public void onData(SocketIOClient client, ConnectEvent data, AckRequest ackrequest){
         log("green", data.getName() + " has connected");
@@ -84,15 +90,16 @@ public class SocketServer extends Thread{
           final SocketIONamespace ns = server.addNamespace("/"+data.getName());
           initGameRoom(ns);
         }else{
-          log("red", "Game '" + data.getName() + "' already exists");
+          log("red", "Game '" + data.getName() + "' already exists - maybe you want to join it?");
         }
         ackrequest.sendAckData(getAllNamespaces());
       }
     });
     server.addEventListener("RoomRefresh", Object.class, new DataListener<Object>(){
+      //TODO: this doesn't actually work
       @Override
       public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
-        log("orange","received room list refresh request");
+        log("orange", "received room list refresh request");
         ackrequest.sendAckData(getAllNamespaces());
       }
     });

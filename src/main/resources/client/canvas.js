@@ -1,4 +1,10 @@
-function Game(canvas, room, name){
+function log(color, data) {
+  var element = $("<div style='color:" + color + "'> " + data + "</div>");
+  $('#log').append(element);
+  setTimeout(function(){element.remove();}, 5000);
+}
+
+function Game(canvas, gameSocket, name){
   //TODO: is this resizable?
   var cols = 25;
   var rows = 25;
@@ -11,11 +17,8 @@ function Game(canvas, room, name){
 
   var players = [];
 
-  var gameSocket;
   var tickInterval;
   this.connect = function(){
-    console.log("asdf");
-    gameSocket = io(window.location.hostname+':1234'+room);
     registerSocketCallbacks(gameSocket);
     registerSocketEmits(gameSocket);
 
@@ -26,8 +29,8 @@ function Game(canvas, room, name){
         y = Math.floor(Math.random() * (rows - 10) + 5),
         d = Math.floor(Math.random() * 4);
     me.init(x, y, d);
-    gameSocket.emit("NewSnakeEvent", {name:name, x:x, y:y, dir:d}, function(){
-      gameSocket.emit("FullUpdateRequest");
+    gameSocket.emit("NewSnakeEvent", {name:name, x:x, y:y, dir:d}, function(data){
+      //use this FullUpdateEvent data to set current state
     });
   };
   this.disconnect = function(){
@@ -89,22 +92,8 @@ function Game(canvas, room, name){
     sock.on('FullUpdateEvent', function(data){
       //every 2 seconds or something
 
-      /*
-      players = [
-        {
-          startPos = {x: int, y: int},
-          startDir = int [0,3],
-          turns = [ {tick: int, dir: int {1,0,-1}} ]
-        }
-      ]
-
-      DIRECTION NUMBERS:
-         0
-       3   1
-         2
-      */
       console.log("recieved FullUpdateEvent");
-      console.log(data)
+      console.log(data);
     });
     sock.on('TurnEvent', function(data){
       for(var i = 0; i < players.length; i++)
@@ -119,6 +108,11 @@ function Snake(name, rows, cols){
   this.name = name;
   var queue = []; //head is at end of array
   var dir = 0;
+  /* DIRECTION NUMBERS:
+       0
+     3   1
+       2
+  */
   this.length = 10; //no eating for now
 
   this.init = function(x,y,d){

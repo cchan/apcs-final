@@ -34,8 +34,8 @@ var RoomList = React.createClass({
   render: function(){
     var self = this;
     var createRoom = function(roomName){
-      if(roomName != "")
-        return <li><a href={'#'+roomName} onClick={self.props.processRoomSelect}>{roomName}</a></li>;
+      if(roomName != "" && roomName != "/") //TODO: actually do something with this #anchor
+        return <li><a href={'#'+roomName.substring(1)} onClick={self.props.processRoomSelect}>{roomName.substring(1)}</a></li>;
     };
     var list = this.props.roomList.map(createRoom).filter(function(x){return typeof x !== 'undefined';});
 
@@ -85,11 +85,59 @@ var RoomSection = React.createClass({
   }
 });
 
-var GameSection = React.createClass({
+var ChatBox = React.createClass({
   propTypes: {
+    name: React.PropTypes.string.isRequired,
+    chats: React.PropTypes.array.isRequired,
+    gameSocket: React.PropTypes.object.isRequired
+  },
+  init: function(){ //TODO: there has to be a better way than chaining artificial init()s of doing the whole tabs[] array thing
+                      //can it be force reconstructed every time? maybe by a builder function?
+    this.setState({newChat: '', chats: []});
+    this.props.gameSocket.on("ChatEvent", function(data){
+      setState({chats: chats.concat([data])}); //There's probably a way to make a React class that deletes itself after, say, 5 seconds.
+    });
+  },
+  onchange: function(e){
+    this.setState({newChat: e.target.value});
+  }
+  send: function(){
+    this.props.gameSocket.emit("ChatEvent", {author: this.props.name, message: this.state.newChat}, function(data){
+      this.setState({newChat: ''});
+    });
+  },
+  chatHTML: function(chat){
+    return <li><b>{chat.author}:</b> {chat.message}</li>;
+  },
+  render: function(){
+    return (
+      <div>
+        <input onChange={this.onchange} />
+        <ul>{this.state.chats.map(chatHTML)}</ul>
+      </div>
+    );
+  }
+});
+
+var GameSection = React.createClass({
+  game: undefined,
+  gameSocket: undefined,
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
     room: React.PropTypes.string.isRequired,
     processReturnToRoomSelect: React.PropTypes.func.isRequired
   },
+  init: function(){
+    this.setState({chats: []});
+
+    this.gameSocket = io(window.location.hostname + ':1234' + self.props.room)};
+    this.game = new Game(document.getElementsByTagName("canvas")[0], this.gameSocket, self.props.name);
+    this.game.connect(); //may be in the middle of a game
+  },
+  end: function(){
+    this.game.disconnect();
+    this.gameSocket.disconnect();
+  }
   render: function(){
     return (
       <section>
@@ -97,19 +145,13 @@ var GameSection = React.createClass({
         <span>Controls: z=left, x=right</span>
         <div><button onClick={this.props.processReturnToRoomSelect}>Back to Game Select</button></div>
         <canvas id="gameCanvas" width="300" height="300"></canvas>
+        <ChatBox name={this.props.name} chats={this.state.chats} gameSocket={this.gameSocket}/>
       </section>
     );
   }
 });
 
-function log(color, data) {
-  var element = $("<div style='color:" + color + "'> " + data + "</div>");
-  $('#log').append(element);
-  setTimeout(function(){element.remove();}, 5000);
-}
-
 var Main = React.createClass({
-  game: undefined,
   getInitialState: function(){
     var socket =  io(window.location.hostname+':1234');
     socket.on('LogEvent', function(data) {
@@ -122,21 +164,15 @@ var Main = React.createClass({
   },
   processRoomSelect: function(e){
     this.setState({room: e.target.innerText, tabIndex: 2});
-
-    var self = this;
-    setTimeout(function(){ //timeout to wait for React to react and put the Canvas back
-      self.game = new Game(document.getElementsByTagName("canvas")[0], self.state.room, self.state.name);
-      self.game.connect(); //may be in the middle of a game
-    }, 50)
-
+    tabs[2].init();
     e.preventDefault();
   },
   processReturnToName: function(){
     this.setState({tabIndex: 0, room: ''});
   },
   processReturnToRoomSelect: function(){
-    this.game.disconnect();
     this.setState({tabIndex: 1, room: ''});
+    tabs[2].end();
   },
 
   name: function(n){
@@ -163,7 +199,8 @@ var Main = React.createClass({
           socket={this.state.socket} />,
       <GameSection
           room={this.state.room}
-          processReturnToRoomSelect={this.processReturnToRoomSelect.bind(this)} />
+          processReturnToRoomSelect={this.processReturnToRoomSelect.bind(this)}
+          name={this.state.name} />
     ];
     return (
       <main>
