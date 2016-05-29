@@ -92,7 +92,7 @@ var ChatBox = React.createClass({
     gameSocket: React.PropTypes.object.isRequired
   },
   init: function(){ //TODO: there has to be a better way than chaining artificial init()s of doing the whole tabs[] array thing
-                      //can it be force reconstructed every time? maybe by a builder function?
+                      //can it be force reconstructed every time? maybe by a builder function? (only for the GameSection though)
     this.setState({newChat: '', chats: []});
     this.props.gameSocket.on("ChatEvent", function(data){
       setState({chats: chats.concat([data])}); //There's probably a way to make a React class that deletes itself after, say, 5 seconds.
@@ -100,7 +100,7 @@ var ChatBox = React.createClass({
   },
   onchange: function(e){
     this.setState({newChat: e.target.value});
-  }
+  },
   send: function(){
     this.props.gameSocket.emit("ChatEvent", {author: this.props.name, message: this.state.newChat}, function(data){
       this.setState({newChat: ''});
@@ -132,12 +132,12 @@ var GameSection = React.createClass({
 
     this.gameSocket = io(window.location.hostname + ':1234' + self.props.room)};
     this.game = new Game(document.getElementsByTagName("canvas")[0], this.gameSocket, self.props.name);
-    this.game.connect(); //may be in the middle of a game
+    this.game.connect();
   },
   end: function(){
     this.game.disconnect();
     this.gameSocket.disconnect();
-  }
+  },
   render: function(){
     return (
       <section>

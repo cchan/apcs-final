@@ -31,11 +31,7 @@ public class SocketServer extends Thread{
       namespaces.add(ns.getName());
     return namespaces;
   }
-
-  public FullUpdateEvent getFullGameState(){
-
-  }
-
+  
   public void initGameRoom(final SocketIONamespace ns){
     ns.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
       @Override
@@ -43,10 +39,10 @@ public class SocketServer extends Thread{
         ns.getBroadcastOperations().sendEvent("TurnEvent", data);
       }
     });
-    ns.addEventListener("NewSnake", NewSnake.class, new DataListener<NewSnake>(){
+    ns.addEventListener("NewSnakeEvent", NewSnakeEvent.class, new DataListener<NewSnakeEvent>(){
       @Override
-      public void onData(SocketIOClient client, NewSnake data, AckRequest ackrequest){
-
+      public void onData(SocketIOClient client, NewSnakeEvent data, AckRequest ackrequest){
+        data.setTick(/*currentTick*/);
       }
     });
     ns.addEventListener("FullUpdateRequest", Object.class, new DataListener<Object>(){
