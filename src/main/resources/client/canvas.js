@@ -21,7 +21,14 @@ function Game(canvas, room, name){
 
     tickInterval = setInterval(this.tick, 200);
 
-    players.push(new Snake(name, rows, cols));
+    var me = new Snake(name, rows, cols);
+    var x = Math.floor(Math.random() * (cols - 10) + 5),
+        y = Math.floor(Math.random() * (rows - 10) + 5),
+        d = Math.floor(Math.random() * 4);
+    me.init(x, y, d);
+    gameSocket.emit("NewSnakeEvent", {name:name, x:x, y:y, dir:d}, function(){
+      gameSocket.emit("FullUpdateRequest");
+    });
   };
   this.disconnect = function(){
     clearInterval(tickInterval);
@@ -31,22 +38,22 @@ function Game(canvas, room, name){
   };
 
   var currentTick = 0;
+  var board = new Array(rows*cols);
   this.tick = function(){
     currentTick++;
 
-    var board = [];
-    for (var y = 0; y < rows; y++){
-      for (var x = 0; x < cols; x++){
-        board.push('white');
-      }
-    }
+    for(var i = 0; i < players.length; i++)
+      players[i].tick(board);
 
-    for(var i = 0; i < players.length; i++){
-      players[i].tick();
+    board.fill(undefined);
+
+    for(var i = 0; i < players.length; i++)
       players[i].fillBoard(board);
-    }
 
-    draw(board);
+    draw(board.map(function(x){
+      if(x===undefined)return 'white';
+      else return x;
+    }));
   };
 
   function draw(board) {
@@ -54,14 +61,14 @@ function Game(canvas, room, name){
 
       var w = ($(canvas).width()) / cols - padding; // dimensions of individual squares
       var h = ($(canvas).height()) / rows - padding;
-      
+
       for (var y = 0; y < rows; y++) {
           for (var x = 0; x < cols; x++) {
               ctx.fillStyle = board[y * cols + x];
               ctx.fillRect(x * (w + padding), y * (h + padding), w, h);
           }
       }
-  };
+  }
 
   //HANDLE KEYBOARD INPUT AND SEND IT TO THE SERVER
   function registerSocketEmits(sock){
@@ -76,8 +83,10 @@ function Game(canvas, room, name){
 
   //HANDLE SERVER-SENT EVENTS AS TURNS (even your own)
   function registerSocketCallbacks(sock){
+    sock.on('NewSnakeEvent', function(data){
 
-    sock.on('FullUpdate', function(data){
+    });
+    sock.on('FullUpdateEvent', function(data){
       //every 2 seconds or something
 
       /*
@@ -94,7 +103,7 @@ function Game(canvas, room, name){
        3   1
          2
       */
-      console.log("recieved FullUpdate");
+      console.log("recieved FullUpdateEvent");
       console.log(data)
     });
     sock.on('TurnEvent', function(data){
@@ -112,11 +121,10 @@ function Snake(name, rows, cols){
   var dir = 0;
   this.length = 10; //no eating for now
 
-  queue.push({
-    x: Math.floor(Math.random() * (cols - 10) + 5),
-    y: Math.floor(Math.random() * (rows - 10) + 5)
-  });
-  dir = Math.floor(Math.random() * 4);
+  this.init = function(x,y,d){
+    queue.push({x: x, y: y});
+    dir = d;
+  }
 
   this.turn = function(twist){
     if(twist == 1) dir = (dir+1)%4;
@@ -129,19 +137,25 @@ function Snake(name, rows, cols){
   this.getCSSColor = function(){
     return hashStringToColor(this.name);
   }
-  this.tick = function(){
-    var headpos = queue[queue.length-1];
-    var newpos = {x: headpos.x, y: headpos.y};
-    if(dir == 0) newpos.y--;
-    if(dir == 1) newpos.x++;
-    if(dir == 2) newpos.y++;
-    if(dir == 3) newpos.x--;
-    if(newpos.x >= cols) newpos.x -= cols;
-    if(newpos.y >= rows) newpos.y -= rows;
-    if(newpos.x < 0) newpos.x += cols;
-    if(newpos.y < 0) newpos.y += rows;
+  this.tick = function(oldboard){
+    if(this.length > 0){ //after dead
+      var headpos = queue[queue.length-1];
+      var newpos = {x: headpos.x, y: headpos.y};
+      if(dir == 0) newpos.y--;
+      if(dir == 1) newpos.x++;
+      if(dir == 2) newpos.y++;
+      if(dir == 3) newpos.x--;
+      if(newpos.x >= cols) newpos.x -= cols;
+      if(newpos.y >= rows) newpos.y -= rows;
+      if(newpos.x < 0) newpos.x += cols;
+      if(newpos.y < 0) newpos.y += rows;
 
-    queue.push(newpos);
+      queue.push(newpos);
+    }
+
+    if(oldboard[newpos.y * cols + newpos.x] !== undefined)
+      this.length = 0;
+
     if(queue.length > this.length)
       queue.shift();
   }
@@ -154,7 +168,7 @@ function Snake(name, rows, cols){
     }
     return hash;
   }
-  function hashStringToColor(str) {
+  function hashStringToColor(str) { //TODO: maybe use HSB and increase B?
     var hash = djb2(str);
     var r = (hash & 0xFF0000) >> 16;
     var g = (hash & 0x00FF00) >> 8;

@@ -31,30 +31,33 @@ public class SocketServer extends Thread{
       namespaces.add(ns.getName());
     return namespaces;
   }
+
+  public FullUpdateEvent getFullGameState(){
+
+  }
+
   public void initGameRoom(final SocketIONamespace ns){
     ns.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
       @Override
       public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
-        log("cyan","turnevent to namespace " + ns.getName());
         ns.getBroadcastOperations().sendEvent("TurnEvent", data);
       }
     });
-    log("cyan", "Game '" + ns.getName() + "' has been created");
+    ns.addEventListener("NewSnake", NewSnake.class, new DataListener<NewSnake>(){
+      @Override
+      public void onData(SocketIOClient client, NewSnake data, AckRequest ackrequest){
 
-    new java.util.Timer().schedule(
-      new java.util.TimerTask() {
-        @Override
-        public void run() {
-          TurnEvent te = new TurnEvent();
-          te.setPlayer("kakakakakaka");
-          te.setTwist(1);
-          te.setTick(420);
-          ns.getBroadcastOperations().sendEvent("TurnEvent", te);
-          log("yellow", "sent a TurnEvent to namespace "+ns.getName());
-        }
-      },
-      5000
-    );
+      }
+    });
+    ns.addEventListener("FullUpdateRequest", Object.class, new DataListener<Object>(){
+      @Override
+      public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
+        //client.emit(gameState);
+      }
+    });
+
+    //EVERY TWO SECONDS, EMIT A FullUpdateEvent.
+    log("cyan", "Game '" + ns.getName() + "' has been created");
   }
   @Override
   public void run(){
@@ -91,13 +94,6 @@ public class SocketServer extends Thread{
       public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
         log("orange","received room list refresh request");
         ackrequest.sendAckData(getAllNamespaces());
-      }
-    });
-    server.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
-      @Override
-      public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
-        log("cyan","turnevent from MAIN");
-        server.getBroadcastOperations().sendEvent("TurnEvent", data);
       }
     });
 
