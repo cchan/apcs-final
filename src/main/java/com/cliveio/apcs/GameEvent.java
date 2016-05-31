@@ -2,7 +2,7 @@ package com.cliveio.apcs;
 import java.lang.Comparable;
 import java.util.UUID;
 
-public abstract class GameEvent extends Event implements Comparable{
+public class GameEvent extends Event implements Comparable{
   private UUID id;
   public UUID getID(){return id;}
   public void setID(UUID id){this.id=id;}

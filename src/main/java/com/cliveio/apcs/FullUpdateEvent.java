@@ -1,6 +1,16 @@
 package com.cliveio.apcs;
+import java.util.Map;
+import java.util.UUID;
 
 public class FullUpdateEvent extends GameEvent{
-  Game g;
-  FullUpdateEvent(Game g, int tick){super();this.g=g;this.setTick(tick);}
+  String name;
+  public String getName(){return name;}
+  Map<UUID, Snake> snakes;
+  public Map<UUID, Snake> getSnakes(){return snakes;}
+  FullUpdateEvent(Game g){
+    super();
+    this.name = g.getName();
+    this.snakes = g.getSnakes();
+    this.setTick(g.getTick());
+  }
 }

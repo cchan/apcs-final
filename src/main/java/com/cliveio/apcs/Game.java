@@ -11,12 +11,12 @@ public class Game{ //can be treated as a GameEvent
 
   private int tick = 0;
   public int getTick(){return tick;}
-  public void advanceTick(){tick++;}
 
   private String name;
   public String getName(){return name;}
 
   private Map<UUID, Snake> snakes = new HashMap<UUID, Snake>();
+  public Map<UUID, Snake> getSnakes(){return snakes;}
 
   private final Timer timer = new Timer();
   private final SocketIONamespace ns;
@@ -38,11 +38,11 @@ public class Game{ //can be treated as a GameEvent
     ns.addEventListener("NewSnakeEvent", NewSnakeEvent.class, new DataListener<NewSnakeEvent>(){
       @Override
       public void onData(SocketIOClient client, NewSnakeEvent data, AckRequest ackrequest){
-        log("teal","Recieved NewSnakeEvent");
+        log("teal","Received NewSnakeEvent");
         data.setTick(tick);
         data.setID(client.getSessionId());
         snakes.put(client.getSessionId(), new Snake(data));
-        ackrequest.sendAckData(new FullUpdateEvent(Game.this, tick));
+        ackrequest.sendAckData(new FullUpdateEvent(Game.this));
         ns.getBroadcastOperations().sendEvent("NewSnakeEvent", data);
       }
     });
@@ -72,13 +72,23 @@ public class Game{ //can be treated as a GameEvent
         ns.getBroadcastOperations().sendEvent("ChatEvent", data);
       }
     });
+    ns.addEventListener("disconnect", Object.class, new DataListener<Object>(){
+      @Override
+      public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
+        GameEvent ndata = new GameEvent();
+        ndata.setID(client.getSessionId());
+        ndata.setTick(tick);
+        snakes.get(client.getSessionId()).kill(ndata); //WHAT IF someone wants to come back and play again in the same room?
+        ns.getBroadcastOperations().sendEvent("SnakeDeathEvent", ndata);
+      }
+    });
 
     timer.schedule(new TimerTask(){
       @Override
       public void run(){
         Game.this.tick ++;
         if(Game.this.tick % 10 == 0)
-          ns.getBroadcastOperations().sendEvent("FullUpdateEvent", new FullUpdateEvent(Game.this, Game.this.tick));
+          ns.getBroadcastOperations().sendEvent("FullUpdateEvent", new FullUpdateEvent(Game.this));
       }
     }, 200, 200); //every 0.2 seconds, starting in 0.2 seconds
   }

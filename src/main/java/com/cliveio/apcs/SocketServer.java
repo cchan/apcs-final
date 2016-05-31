@@ -37,7 +37,7 @@ public class SocketServer extends Thread{
 
     server = new SocketIOServer(config);
 
-    final List<Game> games = new ArrayList<Game>();
+    final Map<String, Game> games = new TreeMap<String, Game>();
 
     server.addEventListener("ConnectEvent", ConnectEvent.class, new DataListener<ConnectEvent>(){
       //TODO: disallow duplicate names?
@@ -50,8 +50,8 @@ public class SocketServer extends Thread{
     server.addEventListener("RoomCreateEvent", RoomCreateEvent.class, new DataListener<RoomCreateEvent>(){
       @Override
       public void onData(SocketIOClient client, RoomCreateEvent data, AckRequest ackrequest){
-        if(server.getNamespace(data.getName()) == null){
-          games.add(new Game(server, data.getName()));
+        if(!games.containsKey(data.getName())){
+          games.put(data.getName(), new Game(server, data.getName()));
           log("cyan", "Game '" + data.getName() + "' has been created");
         }else{
           log("red", "Game '" + data.getName() + "' already exists - maybe you want to join it?");
