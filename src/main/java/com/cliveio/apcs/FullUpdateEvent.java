@@ -12,5 +12,6 @@ public class FullUpdateEvent extends GameEvent{
     this.name = g.getName();
     this.snakes = g.getSnakes();
     this.setTick(g.getTick());
+    this.queue = g.getQueue;
   }
 }

@@ -25,16 +25,14 @@ function Game(canvas, gameSocket, name){
     tickInterval = setInterval(this.tick, 200);
 
     var info = {
-      name: name,
-      x:Math.floor(Math.random() * (cols - 10) + 5),
-      y:Math.floor(Math.random() * (rows - 10) + 5),
-      d:Math.floor(Math.random() * 4)
+      name: name
     };
     console.log("Emitting NewSnakeEvent");
     gameSocket.emit("NewSnakeEvent", info, processFullUpdateEvent);
   };
   this.disconnect = function(){
     clearInterval(tickInterval);
+    gameSocket.emit("disconnect");
     gameSocket.disconnect();
     $(document).off("keypress.socket");
     ctx.clearRect(0, 0, $(canvas).width(), $(canvas).height());
@@ -92,20 +90,21 @@ function Game(canvas, gameSocket, name){
       if(data.snakes.hasOwnProperty(id)){
         if(!players.hasOwnProperty(id)){
           console.log("CREATED player "+data.snakes[id].name);
+          console.log(data.snakes)
           players[id] = new Snake(data.snakes[id].name, rows, cols, {
             x: data.snakes[id].x,
             y: data.snakes[id].y,
             d: data.snakes[id].dir,
             l: 10,
-            currentQueue: data.snakes[id].queue,
             currentTick: data.tick
           });
+          console.log(players)
         }else{
-          //???
+          //use the queue thing
         }
       }
     console.log("received FullUpdateEvent");
-    console.log(data.snakes, players)
+    //console.log(data.snakes, players)
   }
   function registerSocketCallbacks(sock){
     sock.on('NewSnakeEvent', function(data){
@@ -130,9 +129,14 @@ function Game(canvas, gameSocket, name){
 function Snake(name, rows, cols, state){
   this.name = name;
   this.dir = state.d;
-  this.queue = state.currentQueue || [{x:state.x, y:state.y}];//head is at end of array
+  if(typeof state.currentQueue == "object")
+    this.queue = state.currentQueue;
+  else
+    this.queue = [{x:state.x, y:state.y}];//head is at end of array
   this.length = state.l;
   this.currentTick = state.tick;
+
+
 
   /* DIRECTION NUMBERS:
        0
@@ -142,8 +146,8 @@ function Snake(name, rows, cols, state){
 
   this.turn = function(data){ //TODO: gosh this is hard to sync
     if(this.length == 0) return;
-    if(data.twist == 1) dir = (dir+1)%4;
-    else if(data.twist == -1) dir = (dir+3)%4;
+    if(data.twist == 1) this.dir = (this.dir+1)%4;
+    else if(data.twist == -1) this.dir = (this.dir+3)%4;
   }
   this.fillBoard = function(board){
     for(var i = 0; i < this.queue.length; i++)
@@ -152,16 +156,20 @@ function Snake(name, rows, cols, state){
   this.tick = function(oldboard){
     this.currentTick++;
 
-    if(this.queue.length == 0)
+    if(this.queue.length == 0){
+      this.alive = false;
       return;
+    }
 
     var headpos = this.queue[this.queue.length-1];
     var newpos = {x: headpos.x, y: headpos.y};
     if(this.length > 0){ //after dead
-      if(dir == 0) newpos.y--;
-      if(dir == 1) newpos.x++;
-      if(dir == 2) newpos.y++;
-      if(dir == 3) newpos.x--;
+      if(this.dir == 0) newpos.y--;
+      else if(this.dir == 1) newpos.x++;
+      else if(this.dir == 2) newpos.y++;
+      else if(this.dir == 3) newpos.x--;
+      else console.error("No direction for snake");
+
       if(newpos.x >= cols) newpos.x -= cols;
       if(newpos.y >= rows) newpos.y -= rows;
       if(newpos.x < 0) newpos.x += cols;

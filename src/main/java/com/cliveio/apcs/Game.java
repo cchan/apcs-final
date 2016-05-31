@@ -41,17 +41,19 @@ public class Game{ //can be treated as a GameEvent
         log("teal","Received NewSnakeEvent");
         data.setTick(tick);
         data.setID(client.getSessionId());
-        snakes.put(client.getSessionId(), new Snake(data));
-        ackrequest.sendAckData(new FullUpdateEvent(Game.this));
+        snakes.put(client.getSessionId(), new Snake(data)); //Snake() will populate data with randomized x, y, d values
         ns.getBroadcastOperations().sendEvent("NewSnakeEvent", data);
+        ackrequest.sendAckData(new FullUpdateEvent(Game.this));
       }
     });
     ns.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
       @Override
       public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
         data.setID(client.getSessionId());
-        snakes.get(client.getSessionId()).turn(data);
-        ns.getBroadcastOperations().sendEvent("TurnEvent", data);
+        if(snakes.get(client.getSessionId()).isAlive()){
+          snakes.get(client.getSessionId()).turn(data);
+          ns.getBroadcastOperations().sendEvent("TurnEvent", data);
+        }
       }
     });
     ns.addEventListener("SnakeDeathEvent", GameEvent.class, new DataListener<GameEvent>(){
@@ -75,6 +77,8 @@ public class Game{ //can be treated as a GameEvent
     ns.addEventListener("disconnect", Object.class, new DataListener<Object>(){
       @Override
       public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
+        log("red", snakes.get(client.getSessionId()).getName() + " has disconnected");
+
         GameEvent ndata = new GameEvent();
         ndata.setID(client.getSessionId());
         ndata.setTick(tick);
