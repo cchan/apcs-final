@@ -12,6 +12,7 @@ public class FullUpdateEvent extends GameEvent{
     this.name = g.getName();
     this.snakes = g.getSnakes();
     this.setTick(g.getTick());
-    this.queue = g.getQueue;
+    for(Snake s : this.snakes.values())
+      s.getQueue(g.getTick()); //idk, somehow make getQueue get caught by SocketIO and sent
   }
 }
