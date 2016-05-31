@@ -33,7 +33,7 @@ public class SocketServer extends Thread{
   }
   @Override
   public void run(){
-    BasicConfigurator.configure();
+    //BasicConfigurator.configure();
 
     server = new SocketIOServer(config);
 
@@ -51,9 +51,8 @@ public class SocketServer extends Thread{
       @Override
       public void onData(SocketIOClient client, RoomCreateEvent data, AckRequest ackrequest){
         if(server.getNamespace(data.getName()) == null){
-          final SocketIONamespace ns = server.addNamespace("/"+data.getName());
-          games.add(new Game(ns));
-          log("cyan", "Game '" + ns.getName() + "' has been created");
+          games.add(new Game(server, data.getName()));
+          log("cyan", "Game '" + data.getName() + "' has been created");
         }else{
           log("red", "Game '" + data.getName() + "' already exists - maybe you want to join it?");
         }
