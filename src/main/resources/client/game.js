@@ -24,13 +24,16 @@ function Game(canvas, gameSocket, name){
 
     tickInterval = setInterval(this.tick, 200);
 
-    var me = new Snake(name, rows, cols);
-    var x = Math.floor(Math.random() * (cols - 10) + 5),
-        y = Math.floor(Math.random() * (rows - 10) + 5),
-        d = Math.floor(Math.random() * 4);
-    me.init(x, y, d);
-    gameSocket.emit("NewSnakeEvent", {name:name, x:x, y:y, dir:d}, function(data){
-      //use this FullUpdateEvent data to set current state
+    var info = {
+      name: name,
+      x:Math.floor(Math.random() * (cols - 10) + 5),
+      y:Math.floor(Math.random() * (rows - 10) + 5),
+      d:Math.floor(Math.random() * 4)
+    };
+    console.log("Emitting NewSnakeEvent");
+    gameSocket.emit("NewSnakeEvent", info, function(data){
+      console.log("Recieved implicit FullUpdateEvent");
+      console.log(data);
     });
   };
   this.disconnect = function(){
@@ -87,38 +90,43 @@ function Game(canvas, gameSocket, name){
   //HANDLE SERVER-SENT EVENTS AS TURNS (even your own)
   function registerSocketCallbacks(sock){
     sock.on('NewSnakeEvent', function(data){
-
+      console.log("recieved NewSnakeEvent");
+      console.log(data);
+      players.push(new Snake(data.name, rows, cols, {
+        x: data.x,
+        y: data.y,
+        d: data.dir,
+        l: 10,
+        id: data.id
+      }));
     });
     sock.on('FullUpdateEvent', function(data){
-      //every 2 seconds or something
-
       console.log("recieved FullUpdateEvent");
       console.log(data);
     });
     sock.on('TurnEvent', function(data){
       for(var i = 0; i < players.length; i++)
-        if(players[i].name == data.player)
+        if(players[i].id == data.id)
           players[i].turn(data.twist); //Not sure how to deal with data.tick
       console.log("received TurnEvent")
       console.log(data);
     });
   }
 }
-function Snake(name, rows, cols){
+function Snake(name, rows, cols, state){
   this.name = name;
   var queue = []; //head is at end of array
-  var dir = 0;
+
+  var dir = state.d;
+  queue.push({x:state.x, y:state.y});
+  this.length = state.l;
+  this.id = state.id;
+
   /* DIRECTION NUMBERS:
        0
      3   1
        2
   */
-  this.length = 10; //no eating for now
-
-  this.init = function(x,y,d){
-    queue.push({x: x, y: y});
-    dir = d;
-  }
 
   this.turn = function(twist){
     if(twist == 1) dir = (dir+1)%4;
@@ -132,9 +140,12 @@ function Snake(name, rows, cols){
     return hashStringToColor(this.name);
   }
   this.tick = function(oldboard){
+    if(queue.length == 0)
+      return;
+
+    var headpos = queue[queue.length-1];
+    var newpos = {x: headpos.x, y: headpos.y};
     if(this.length > 0){ //after dead
-      var headpos = queue[queue.length-1];
-      var newpos = {x: headpos.x, y: headpos.y};
       if(dir == 0) newpos.y--;
       if(dir == 1) newpos.x++;
       if(dir == 2) newpos.y++;

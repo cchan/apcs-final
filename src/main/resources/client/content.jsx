@@ -132,7 +132,7 @@ var GameSection = React.createClass({
     return {chats: []};
   },
   componentWillMount: function(){
-    this.gameSocket = io(window.location.hostname + ':1234' + this.props.room);
+    this.gameSocket = io(window.location.hostname + ':1234/' + this.props.room);
   },
   componentDidMount: function(){
     this.game = new Game(document.getElementById("gameCanvas"), this.gameSocket, this.props.name);
@@ -188,7 +188,7 @@ var Main = React.createClass({
   },
 
   render: function(){
-    var tabs = [ //This will create new element objects every time. This is good.
+    var tabs = [ //This will create new element objects every time. This is good. Although potentially unstable... render() can be called anytime
       <NameSection
           name={this.name.bind(this)}
           processRoomList={this.processRoomList.bind(this)}

@@ -22,6 +22,14 @@ public class Game{ //can be treated as a GameEvent
   private final SocketIONamespace ns;
   private final SocketIOServer server;
 
+  public void log(String color, String text){
+    LogEvent le = new LogEvent();
+    le.setColor(color);
+    le.setText(text);
+    ns.getBroadcastOperations().sendEvent("LogEvent", le);
+    System.out.println("SOCKETSERVER"+this.ns.getName()+" LOG: " + text);
+  }
+
   public Game(final SocketIOServer server, String gameName){
     this.server = server;
     this.ns = server.addNamespace("/"+gameName);
@@ -30,7 +38,9 @@ public class Game{ //can be treated as a GameEvent
     ns.addEventListener("NewSnakeEvent", NewSnakeEvent.class, new DataListener<NewSnakeEvent>(){
       @Override
       public void onData(SocketIOClient client, NewSnakeEvent data, AckRequest ackrequest){
+        log("teal","Recieved NewSnakeEvent");
         data.setTick(tick);
+        data.setID(client.getSessionId());
         snakes.put(client.getSessionId(), new Snake(data));
         ackrequest.sendAckData(new FullUpdateEvent(Game.this, tick));
         ns.getBroadcastOperations().sendEvent("NewSnakeEvent", data);
@@ -39,6 +49,7 @@ public class Game{ //can be treated as a GameEvent
     ns.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
       @Override
       public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
+        data.setID(client.getSessionId());
         snakes.get(client.getSessionId()).turn(data);
         ns.getBroadcastOperations().sendEvent("TurnEvent", data);
       }
@@ -50,6 +61,7 @@ public class Game{ //can be treated as a GameEvent
       //In both cases, the player immediately hits zero length.
       @Override
       public void onData(SocketIOClient client, GameEvent data, AckRequest ackrequest){
+        data.setID(client.getSessionId());
         snakes.get(client.getSessionId()).kill(data); //WHAT IF someone wants to come back and play again in the same room?
         ns.getBroadcastOperations().sendEvent("SnakeDeathEvent", data);
       }
