@@ -31,45 +31,13 @@ public class SocketServer extends Thread{
       namespaces.add(ns.getName());
     return namespaces;
   }
-  
-  public void initGameRoom(final SocketIONamespace ns){
-    ns.addEventListener("TurnEvent", TurnEvent.class, new DataListener<TurnEvent>(){
-      @Override
-      public void onData(SocketIOClient client, TurnEvent data, AckRequest ackrequest){
-        ns.getBroadcastOperations().sendEvent("TurnEvent", data);
-      }
-    });
-    ns.addEventListener("NewSnakeEvent", NewSnakeEvent.class, new DataListener<NewSnakeEvent>(){
-      @Override
-      public void onData(SocketIOClient client, NewSnakeEvent data, AckRequest ackrequest){
-        data.setTick(/*currentTick*/);
-      }
-    });
-    ns.addEventListener("FullUpdateRequest", Object.class, new DataListener<Object>(){
-      //TODO: this shouldn't be necessary
-      @Override
-      public void onData(SocketIOClient client, Object data, AckRequest ackrequest){
-        //client.emit(gameState);
-      }
-    });
-    ns.addEventListener("ChatEvent", ChatEvent.class, new DataListener<ChatEvent>(){
-      @Override
-      public void onData(SocketIOClient client, ChatEvent data, AckRequest ackrequest){
-        ns.getBroadcastOperations().sendEvent("ChatEvent", data);
-      }
-    });
-
-    java.util.Timer.setInterval(function(){send FullUpdateEvent});
-
-    //EVERY TWO SECONDS, EMIT A FullUpdateEvent.
-
-    log("cyan", "Game '" + ns.getName() + "' has been created");
-  }
   @Override
   public void run(){
     BasicConfigurator.configure();
 
     server = new SocketIOServer(config);
+
+    final List<Game> games = new ArrayList<Game>();
 
     server.addEventListener("ConnectEvent", ConnectEvent.class, new DataListener<ConnectEvent>(){
       //TODO: disallow duplicate names?
@@ -84,7 +52,8 @@ public class SocketServer extends Thread{
       public void onData(SocketIOClient client, RoomCreateEvent data, AckRequest ackrequest){
         if(server.getNamespace(data.getName()) == null){
           final SocketIONamespace ns = server.addNamespace("/"+data.getName());
-          initGameRoom(ns);
+          games.add(new Game(ns));
+          log("cyan", "Game '" + ns.getName() + "' has been created");
         }else{
           log("red", "Game '" + data.getName() + "' already exists - maybe you want to join it?");
         }

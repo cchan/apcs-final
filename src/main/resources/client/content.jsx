@@ -91,9 +91,10 @@ var ChatBox = React.createClass({
     chats: React.PropTypes.array.isRequired,
     gameSocket: React.PropTypes.object.isRequired
   },
-  init: function(){ //TODO: there has to be a better way than chaining artificial init()s of doing the whole tabs[] array thing
-                      //can it be force reconstructed every time? maybe by a builder function? (only for the GameSection though)
-    this.setState({newChat: '', chats: []});
+  getInitialState: function(){
+    return {newChat: '', chats: []};
+  },
+  componentWillMount: function(){
     this.props.gameSocket.on("ChatEvent", function(data){
       setState({chats: chats.concat([data])}); //There's probably a way to make a React class that deletes itself after, say, 5 seconds.
     });
@@ -113,7 +114,7 @@ var ChatBox = React.createClass({
     return (
       <div>
         <input onChange={this.onchange} />
-        <ul>{this.state.chats.map(chatHTML)}</ul>
+        <ul>{this.state.chats.map(this.chatHTML)}</ul>
       </div>
     );
   }
@@ -127,14 +128,17 @@ var GameSection = React.createClass({
     room: React.PropTypes.string.isRequired,
     processReturnToRoomSelect: React.PropTypes.func.isRequired
   },
-  init: function(){
-    this.setState({chats: []});
-
-    this.gameSocket = io(window.location.hostname + ':1234' + self.props.room)};
-    this.game = new Game(document.getElementsByTagName("canvas")[0], this.gameSocket, self.props.name);
+  getInitialState: function(){
+    return {chats: []};
+  },
+  componentWillMount: function(){
+    this.gameSocket = io(window.location.hostname + ':1234' + this.props.room);
+  },
+  componentDidMount: function(){
+    this.game = new Game(document.getElementById("gameCanvas"), this.gameSocket, this.props.name);
     this.game.connect();
   },
-  end: function(){
+  componentWillUnmount: function(){
     this.game.disconnect();
     this.gameSocket.disconnect();
   },
@@ -164,7 +168,6 @@ var Main = React.createClass({
   },
   processRoomSelect: function(e){
     this.setState({room: e.target.innerText, tabIndex: 2});
-    tabs[2].init();
     e.preventDefault();
   },
   processReturnToName: function(){
@@ -172,7 +175,6 @@ var Main = React.createClass({
   },
   processReturnToRoomSelect: function(){
     this.setState({tabIndex: 1, room: ''});
-    tabs[2].end();
   },
 
   name: function(n){
@@ -186,7 +188,7 @@ var Main = React.createClass({
   },
 
   render: function(){
-    var tabs = [
+    var tabs = [ //This will create new element objects every time. This is good.
       <NameSection
           name={this.name.bind(this)}
           processRoomList={this.processRoomList.bind(this)}
